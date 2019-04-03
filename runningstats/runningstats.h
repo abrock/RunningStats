@@ -6,6 +6,9 @@
 #include <sstream>
 #include <cmath>
 #include <vector>
+#include <map>
+
+namespace runningstats {
 
 /**
  * @brief The BinaryStats class collects statistics about binary values.
@@ -64,6 +67,22 @@ public:
     double getCorr();
 
     void printInfo();
+};
+
+class Histogram {
+    double const bin_size;
+    std::map<int64_t, size_t> data;
+    size_t n = 0;
+
+public:
+    Histogram(double const _bin_size);
+
+    bool push(double const value);
+
+    bool push_unsafe(double const value);
+
+    std::vector<std::pair<double, double> > getAbsoluteHist() const;
+    std::vector<std::pair<double, double> > getRelativeHist() const;
 };
 
 class RunningStats {
@@ -175,5 +194,7 @@ private:
     mutable std::vector<T> values;
     mutable bool sorted = true;
 };
+
+} // namespace runningstats
 
 #endif // RUNNINGSTATS_H

@@ -4,6 +4,8 @@
 
 #include "runningstats/runningstats.h"
 
+using namespace runningstats;
+
 ::testing::AssertionResult RelativeNear(const double a, const double b, double delta) {
     double const diff = std::abs(a-b);
     double const relative_diff = 2*diff/(std::abs(a) + std::abs(b));
@@ -192,6 +194,36 @@ TEST(RunningStats, Correlation) {
         cov.push(ii, -ii);
     }
     cov.printInfo();
+}
+
+TEST(Histogram, all) {
+    std::vector<double> const bin_sizes = {.25, .3, .5, 1., 1.4, 2.8, 5.6};
+    for (const double bin_size : bin_sizes) {
+        Histogram h(bin_size);
+        for (size_t ii = 0; ii < 10; ++ii) {
+            h.push(double(ii)*bin_size);
+        }
+        {
+            auto hist = h.getAbsoluteHist();
+            size_t counter = 0;
+            for (auto & entry : hist) {
+                EXPECT_NEAR(double(counter)*bin_size, entry.first, 1e-16);
+                EXPECT_NEAR(1, entry.second, 1e-16);
+
+                ++counter;
+            }
+        }
+        {
+            auto hist = h.getRelativeHist();
+            size_t counter = 0;
+            for (auto & entry : hist) {
+                EXPECT_NEAR(double(counter)*bin_size, entry.first, 1e-16);
+                EXPECT_NEAR(.1, entry.second, 1e-16);
+
+                ++counter;
+            }
+        }
+    }
 }
 
 int main(int argc, char** argv)

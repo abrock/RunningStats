@@ -6,6 +6,8 @@
 
 #include "runningstats.h"
 
+namespace runningstats {
+
 void RunningStats::clear() {
     sum = 0;
     squaresum = 0;
@@ -289,23 +291,23 @@ double QuantileStats<T>::getTrimmedMean(const T & ignore) {
         return getMean();
     }
     if (ignore >= 1) {
-        return getQuantile(0.5);
+        return double(getQuantile(0.5));
     }
     if (values.size() == 0) {
         return 0;
     }
     if (values.size() == 1) {
-        return values[0];
+        return double(values[0]);
     }
-    const size_t lower = (size_t)(ignore/2 * (values.size()-1));
-    const size_t upper = (size_t)((1.0-ignore/2) * (values.size()-1));
+    const size_t lower = size_t(ignore/2 * (values.size()-1));
+    const size_t upper = size_t((1.0-ignore/2) * (values.size()-1));
     if (0 == upper - lower) {
-        return getQuantile(0.5);
+        return double(getQuantile(0.5));
     }
     sort();
     double result = 0;
     for (size_t ii = lower; ii <= upper; ++ii) {
-        result += values[ii];
+        result += double(values[ii]);
     }
     return result / (upper-lower);
 }
@@ -421,3 +423,45 @@ BinaryStats BinaryStats::merged(BinaryStats const& a, BinaryStats const& b) {
 
     return result;
 }
+
+Histogram::Histogram(const double _bin_size) : bin_size(_bin_size) {
+
+}
+
+bool Histogram::push(double value) {
+    if (!std::isfinite(value)) {
+        return false;
+    }
+#pragma omp critical
+    {
+        return push_unsafe(value);
+    }
+}
+
+bool Histogram::push_unsafe(const double value) {
+    if (!std::isfinite(value)) {
+        return false;
+    }
+    int64_t const bin = int64_t(std::round(value/bin_size));
+    data[bin]++;
+    n++;
+    return true;
+}
+
+std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {
+    std::vector<std::pair<double, double> > result;
+    for (auto it = data.begin(); it != data.end(); ++it) {
+        result.push_back(std::pair<double, double>(it->first * bin_size, it->second));
+    }
+    return result;
+}
+
+std::vector<std::pair<double, double> > Histogram::getRelativeHist() const {
+    std::vector<std::pair<double, double> > result;
+    for (auto it = data.begin(); it != data.end(); ++it) {
+        result.push_back(std::pair<double, double>(it->first * bin_size, double(it->second)/n));
+    }
+    return result;
+}
+
+} // namespace runningstats
