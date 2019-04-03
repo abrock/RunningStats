@@ -200,9 +200,19 @@ TEST(Histogram, all) {
     std::vector<double> const bin_sizes = {.25, .3, .5, 1., 1.4, 2.8, 5.6};
     for (const double bin_size : bin_sizes) {
         Histogram h(bin_size);
+        RunningStats compare;
         for (size_t ii = 0; ii < 10; ++ii) {
             h.push(double(ii)*bin_size);
+            compare.push(double(ii)*bin_size);
         }
+        EXPECT_NEAR(h.getMean(), compare.getMean(), 1e-16);
+        EXPECT_NEAR(h.getVar(), compare.getVar(), 1e-16);
+        EXPECT_NEAR(h.getMin(), compare.getMin(), 1e-16);
+        EXPECT_NEAR(h.getMax(), compare.getMax(), 1e-16);
+        EXPECT_NEAR(h.getCount(), compare.getCount(), 1e-16);
+        EXPECT_NEAR(h.getStddev(), compare.getStddev(), 1e-16);
+        EXPECT_NEAR(h.getLogMean(), compare.getLogMean(), 1e-16);
+        EXPECT_NEAR(h.getLogStddev(), compare.getLogStddev(), 1e-16);
         {
             auto hist = h.getAbsoluteHist();
             size_t counter = 0;

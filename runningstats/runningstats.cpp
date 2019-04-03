@@ -434,8 +434,9 @@ bool Histogram::push(double value) {
     }
 #pragma omp critical
     {
-        return push_unsafe(value);
+        push_unsafe(value);
     }
+    return true;
 }
 
 bool Histogram::push_unsafe(const double value) {
@@ -444,7 +445,8 @@ bool Histogram::push_unsafe(const double value) {
     }
     int64_t const bin = int64_t(std::round(value/bin_size));
     data[bin]++;
-    n++;
+    RunningStats::push_unsafe(value);
+
     return true;
 }
 

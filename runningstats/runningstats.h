@@ -69,22 +69,6 @@ public:
     void printInfo();
 };
 
-class Histogram {
-    double const bin_size;
-    std::map<int64_t, size_t> data;
-    size_t n = 0;
-
-public:
-    Histogram(double const _bin_size);
-
-    bool push(double const value);
-
-    bool push_unsafe(double const value);
-
-    std::vector<std::pair<double, double> > getAbsoluteHist() const;
-    std::vector<std::pair<double, double> > getRelativeHist() const;
-};
-
 class RunningStats {
 
 public:
@@ -165,6 +149,22 @@ public:
     double log_min = 0;
     double log_max = 0;
     size_t log_n = 0;
+};
+
+
+class Histogram : public RunningStats {
+    double const bin_size;
+    std::map<int64_t, size_t> data;
+
+public:
+    Histogram(double const _bin_size);
+
+    bool push(double const value);
+
+    bool push_unsafe(double const value);
+
+    std::vector<std::pair<double, double> > getAbsoluteHist() const;
+    std::vector<std::pair<double, double> > getRelativeHist() const;
 };
 
 template<class T>
