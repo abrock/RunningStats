@@ -60,10 +60,13 @@ public:
     }
 
     double getMeanX();
-    double getVarX();
+    double getVarX() const;
 
     double getMeanY();
-    double getVarY();
+    double getVarY() const;
+
+    double getStddevX() const;
+    double getStddevY() const;
 
     double getCoVar();
     double getCorr();

@@ -347,7 +347,7 @@ double RunningCovariance::getMeanX() {
     return meanX;
 }
 
-double RunningCovariance::getVarX() {
+double RunningCovariance::getVarX() const {
     return n <= 1 ? 0 : varSumX/(n - 1);
 }
 
@@ -355,8 +355,16 @@ double RunningCovariance::getMeanY() {
     return meanY;
 }
 
-double RunningCovariance::getVarY() {
+double RunningCovariance::getVarY() const {
     return n <= 1 ? 0 : varSumY/(n - 1);
+}
+
+double RunningCovariance::getStddevX() const {
+    return std::sqrt(getVarX());
+}
+
+double RunningCovariance::getStddevY() const {
+    return std::sqrt(getVarY());
 }
 
 double RunningCovariance::getCoVar() {
