@@ -100,6 +100,79 @@ TEST(RunningStats, Mean) {
     }
 }
 
+TEST(RunningCorrelation, minmax) {
+    runningstats::RunningCovariance c;
+
+    EXPECT_EQ(0, c.getMinX());
+    EXPECT_EQ(0, c.getMinY());
+    EXPECT_EQ(0, c.getMaxX());
+    EXPECT_EQ(0, c.getMaxY());
+
+    c.push(0,0);
+
+    EXPECT_EQ(0, c.getMinX());
+    EXPECT_EQ(0, c.getMinY());
+    EXPECT_EQ(0, c.getMaxX());
+    EXPECT_EQ(0, c.getMaxY());
+
+    c.push(0,1);
+
+    EXPECT_EQ(0, c.getMinX());
+    EXPECT_EQ(0, c.getMinY());
+    EXPECT_EQ(0, c.getMaxX());
+    EXPECT_EQ(1, c.getMaxY());
+
+    c.push(1,1);
+
+    EXPECT_EQ(0, c.getMinX());
+    EXPECT_EQ(0, c.getMinY());
+    EXPECT_EQ(1, c.getMaxX());
+    EXPECT_EQ(1, c.getMaxY());
+
+    c.push(1,1);
+
+    EXPECT_EQ(0, c.getMinX());
+    EXPECT_EQ(0, c.getMinY());
+    EXPECT_EQ(1, c.getMaxX());
+    EXPECT_EQ(1, c.getMaxY());
+
+    c.push(-1,1);
+
+    EXPECT_EQ(-1, c.getMinX());
+    EXPECT_EQ(0, c.getMinY());
+    EXPECT_EQ(1, c.getMaxX());
+    EXPECT_EQ(1, c.getMaxY());
+
+    c.push(-1,-1);
+
+    EXPECT_EQ(-1, c.getMinX());
+    EXPECT_EQ(-1, c.getMinY());
+    EXPECT_EQ(1, c.getMaxX());
+    EXPECT_EQ(1, c.getMaxY());
+
+    c.push(-2,-2);
+
+    EXPECT_EQ(-2, c.getMinX());
+    EXPECT_EQ(-2, c.getMinY());
+    EXPECT_EQ(1, c.getMaxX());
+    EXPECT_EQ(1, c.getMaxY());
+
+    c.push(-3,3);
+
+    EXPECT_EQ(-3, c.getMinX());
+    EXPECT_EQ(-2, c.getMinY());
+    EXPECT_EQ(1, c.getMaxX());
+    EXPECT_EQ(3, c.getMaxY());
+
+    c.push(3,4);
+
+    EXPECT_EQ(-3, c.getMinX());
+    EXPECT_EQ(-2, c.getMinY());
+    EXPECT_EQ(3, c.getMaxX());
+    EXPECT_EQ(4, c.getMaxY());
+}
+
+
 TEST(RunningStats, Correlation) {
 
 

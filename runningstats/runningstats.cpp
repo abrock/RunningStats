@@ -320,8 +320,8 @@ void RunningCovariance::push(double x, double y)
 {
     n++;
     if (n == 1) {
-        meanX = x;
-        meanY = y;
+        meanX = maxX = minX = x;
+        meanY = maxY = minY = y;
     }
     else {
         double const newMeanX = meanX + (x - meanX) / n;
@@ -335,6 +335,11 @@ void RunningCovariance::push(double x, double y)
         meanX = newMeanX;
         meanY = newMeanY;
         covarSum = newCovarSum;
+
+        minX = std::min(minX, x);
+        minY = std::min(minY, y);
+        maxX = std::max(maxX, x);
+        maxY = std::max(maxY, y);
     }
 }
 
@@ -360,6 +365,22 @@ double RunningCovariance::getCoVar() {
 
 double RunningCovariance::getCorr() {
     return getCoVar() / std::sqrt(getVarX() * getVarY());
+}
+
+double RunningCovariance::getMinX() const {
+    return minX;
+}
+
+double RunningCovariance::getMaxX() const {
+    return maxX;
+}
+
+double RunningCovariance::getMinY() const {
+    return minY;
+}
+
+double RunningCovariance::getMaxY() const {
+    return maxY;
 }
 
 void RunningCovariance::printInfo()

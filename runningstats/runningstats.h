@@ -46,6 +46,8 @@ class RunningCovariance
 public:
     size_t n = 0;
     double
+    minX = 0, maxX = 0,
+    minY = 0, maxY = 0,
     meanX = 0, meanY = 0,
     varSumX = 0, varSumY = 0,
     covarSum = 0;
@@ -65,6 +67,11 @@ public:
 
     double getCoVar();
     double getCorr();
+
+    double getMinX() const;
+    double getMaxX() const;
+    double getMinY() const;
+    double getMaxY() const;
 
     void printInfo();
 };
