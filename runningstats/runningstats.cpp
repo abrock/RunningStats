@@ -6,6 +6,8 @@
 
 #include "runningstats.h"
 
+#include "gnuplot-iostream.h"
+
 namespace runningstats {
 
 void RunningStats::clear() {
@@ -208,9 +210,24 @@ T QuantileStats<T>::getMedian() const {
 
 template<class T>
 void QuantileStats<T>::push(const double value){
+#pragma omp critical
+    {
+        push_unsafe(value);
+    }
+}
+
+template<class T>
+void QuantileStats<T>::push_unsafe(const double value) {
     sorted = false;
     values.push_back(value);
     RunningStats::push(value);
+}
+
+template<class T>
+Histogram QuantileStats<T>::getHistogram(const double bin_size) {
+    Histogram result(bin_size);
+    result.push_vector_unsafe(values);
+    return result;
 }
 
 
@@ -254,6 +271,13 @@ void QuantileStats<T>::sort() const {
         std::sort(values.begin(), values.end());
         sorted = true;
     }
+}
+
+template<class T>
+void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const double absolute) const {
+    Histogram h(bin_size);
+    h.push_vector_unsafe(values);
+    h.plotHist(prefix, absolute);
 }
 
 template<class T>
@@ -468,6 +492,21 @@ bool Histogram::push(double value) {
     return true;
 }
 
+
+bool Histogram::push_vector(const std::vector<double> &values) {
+#pragma omp critical
+    {
+        push_vector_unsafe(values);
+    }
+}
+
+bool Histogram::push_vector(const std::vector<float> &values) {
+#pragma omp critical
+    {
+        push_vector_unsafe(values);
+    }
+}
+
 bool Histogram::push_unsafe(const double value) {
     if (!std::isfinite(value)) {
         return false;
@@ -479,20 +518,71 @@ bool Histogram::push_unsafe(const double value) {
     return true;
 }
 
+bool Histogram::push_vector_unsafe(const std::vector<double> &values) {
+    for (const double  val : values) {
+        push_unsafe(val);
+    }
+    return true;
+}
+bool Histogram::push_vector_unsafe(const std::vector<float> &values) {
+    for (const float  val : values) {
+        push_unsafe(val);
+    }
+    return true;
+}
+
 std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {
     std::vector<std::pair<double, double> > result;
-    for (auto it = data.begin(); it != data.end(); ++it) {
-        result.push_back(std::pair<double, double>(it->first * bin_size, it->second));
+    for (int64_t ii = data.begin()->first; ii <= data.rbegin()->first; ++ii) {
+        auto const it = data.find(ii);
+        if (it != data.end()) {
+            result.push_back(std::pair<double, double>(it->first * bin_size, double(it->second)));
+        }
+        else {
+            result.push_back(std::pair<double, double>(ii * bin_size, 0.0));
+        }
     }
+
+
     return result;
 }
 
 std::vector<std::pair<double, double> > Histogram::getRelativeHist() const {
     std::vector<std::pair<double, double> > result;
-    for (auto it = data.begin(); it != data.end(); ++it) {
-        result.push_back(std::pair<double, double>(it->first * bin_size, double(it->second)/n));
+    for (int64_t ii = data.begin()->first; ii <= data.rbegin()->first; ++ii) {
+        auto const it = data.find(ii);
+        if (it != data.end()) {
+            result.push_back(std::pair<double, double>(it->first * bin_size, double(it->second)/n));
+        }
+        else {
+            result.push_back(std::pair<double, double>(ii * bin_size, 0.0));
+        }
     }
+
     return result;
+}
+
+void Histogram::plotHist(const std::string prefix, const double absolute) const {
+    if (data.empty()) {
+        return;
+    }
+    gnuplotio::Gnuplot gpl;
+    std::stringstream cmd;
+    std::string data_file = prefix + ".data";
+    cmd << "set term svg enhanced background rgb \"white\";\n"
+        << "set output \"" << prefix + ".svg\"; \n";
+
+    auto const data = absolute ? getAbsoluteHist() : getRelativeHist();
+
+    cmd << "plot " << gpl.file(data, data_file) << " w boxes notitle; \n"
+        << "set term tikz; \n"
+        << "set output \"" << prefix << ".tex\"; \n"
+        << "replot;\n";
+
+    gpl << cmd.str();
+
+    std::ofstream out(prefix + ".gpl");
+    out << cmd.str();
 }
 
 } // namespace runningstats

@@ -20,6 +20,13 @@ endif()
 # Target
 add_library(${LIBRARY_NAME} ${LIBRARY_TYPE} ${SOURCES} ${HEADERS})
 
+find_package(Boost COMPONENTS system filesystem iostreams REQUIRED)
+target_link_libraries(${LIBRARY_NAME}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_IOSTREAMS_LIBRARY}
+)
+
 # Install library
 install(TARGETS ${LIBRARY_NAME}
   EXPORT ${PROJECT_EXPORT}

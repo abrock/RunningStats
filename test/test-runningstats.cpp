@@ -1,10 +1,15 @@
 #include <iostream>
+#include <random>
 
 #include <gtest/gtest.h>
 
 #include "runningstats/runningstats.h"
 
 using namespace runningstats;
+
+std::random_device dev;
+std::mt19937 rng(dev());
+
 
 ::testing::AssertionResult RelativeNear(const double a, const double b, double delta) {
     double const diff = std::abs(a-b);
@@ -309,8 +314,25 @@ TEST(Histogram, all) {
     }
 }
 
-int main(int argc, char** argv)
-{
+TEST(plot, plotHist) {
+    runningstats::Histogram h(0.1);
+    std::normal_distribution<double> dist;
+    for (size_t ii = 0; ii < 500; ++ii) {
+        h.push(dist(rng));
+    }
+    h.plotHist("test-plot", false);
+}
+
+TEST(plot, QuantileStats_plotHist) {
+    runningstats::QuantileStats<double> h;
+    std::normal_distribution<double> dist;
+    for (size_t ii = 0; ii < 500; ++ii) {
+        h.push(dist(rng));
+    }
+    h.plotHist("test-plot-quantile", false);
+}
+
+int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;
 }

@@ -171,16 +171,28 @@ public:
 
     bool push(double const value);
 
+    bool push_vector(std::vector<double> const& values);
+    bool push_vector(std::vector<float> const& values);
+
     bool push_unsafe(double const value);
+
+    bool push_vector_unsafe(std::vector<double> const& values);
+    bool push_vector_unsafe(std::vector<float> const& values);
 
     std::vector<std::pair<double, double> > getAbsoluteHist() const;
     std::vector<std::pair<double, double> > getRelativeHist() const;
+
+    void plotHist(std::string const prefix, double const absolute = true) const;
 };
 
 template<class T>
 class QuantileStats : public RunningStats {
 public:
     void push(const double value);
+
+    void push_unsafe(const double value);
+
+    Histogram getHistogram(double const bin_size);
 
     T getQuantile(const double quantile) const;
 
@@ -198,8 +210,11 @@ public:
 
     double getTrimmedMean(const T & ignore);
 
-private:
     void sort() const;
+
+    void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
+
+private:
 
     mutable std::vector<T> values;
     mutable bool sorted = true;
