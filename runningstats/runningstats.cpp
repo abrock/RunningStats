@@ -281,6 +281,36 @@ void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size,
 }
 
 template<class T>
+void QuantileStats<T>::plotCDF(const std::string prefix) const {
+    if (values.size() < 2) {
+        return;
+    }
+    sort();
+
+    gnuplotio::Gnuplot gpl;
+    std::stringstream cmd;
+    std::string data_file = prefix + ".data";
+    cmd << "set term svg enhanced background rgb \"white\";\n"
+        << "set output \"" << prefix + ".svg\"; \n";
+
+    cmd << "plot " << gpl.file(values, data_file) << " u 1:($0/" << (values.size()-1) << ") w l notitle; \n"
+        << "set term tikz; \n"
+        << "set output \"" << prefix << ".tex\"; \n"
+        << "replot;\n";
+
+    gpl << cmd.str();
+
+    std::ofstream out(prefix + ".gpl");
+    out << cmd.str();
+}
+
+template<class T>
+void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, const double absolute) const {
+    plotHist(prefix + "-hist", bin_size, absolute);
+    plotCDF(prefix + "-cdf");
+}
+
+template<class T>
 double QuantileStats<T>::getAccurateVariance() const {
     if (n < 2) {
         return 0;
@@ -496,14 +526,14 @@ bool Histogram::push(double value) {
 bool Histogram::push_vector(const std::vector<double> &values) {
 #pragma omp critical
     {
-        push_vector_unsafe(values);
+        return push_vector_unsafe(values);
     }
 }
 
 bool Histogram::push_vector(const std::vector<float> &values) {
 #pragma omp critical
     {
-        push_vector_unsafe(values);
+        return push_vector_unsafe(values);
     }
 }
 
@@ -519,16 +549,19 @@ bool Histogram::push_unsafe(const double value) {
 }
 
 bool Histogram::push_vector_unsafe(const std::vector<double> &values) {
+    bool success = true;
     for (const double  val : values) {
-        push_unsafe(val);
+        success &= push_unsafe(val);
     }
-    return true;
+    return success;
 }
+
 bool Histogram::push_vector_unsafe(const std::vector<float> &values) {
+    bool success = true;
     for (const float  val : values) {
-        push_unsafe(val);
+        success &= push_unsafe(val);
     }
-    return true;
+    return success;
 }
 
 std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {

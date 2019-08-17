@@ -320,16 +320,17 @@ TEST(plot, plotHist) {
     for (size_t ii = 0; ii < 500; ++ii) {
         h.push(dist(rng));
     }
-    h.plotHist("test-plot", false);
+    h.plotHist("test-plot-hist", false);
 }
 
 TEST(plot, QuantileStats_plotHist) {
     runningstats::QuantileStats<double> h;
     std::normal_distribution<double> dist;
-    for (size_t ii = 0; ii < 500; ++ii) {
+    for (size_t ii = 0; ii < 5000; ++ii) {
         h.push(dist(rng));
     }
-    h.plotHist("test-plot-quantile", false);
+    h.plotHist("test-plot-quantile-hist", 0.1, false);
+    h.plotCDF("test-plot-quantile-cdf");
 }
 
 int main(int argc, char** argv) {

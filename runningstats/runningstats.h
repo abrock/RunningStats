@@ -214,6 +214,10 @@ public:
 
     void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
 
+    void plotCDF(std::string const prefix) const;
+
+    void plotHistAndCDF(std::string const prefix, double const bin_size, double const absolute = true) const;
+
 private:
 
     mutable std::vector<T> values;
