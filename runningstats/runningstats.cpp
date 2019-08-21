@@ -222,7 +222,7 @@ template<class T>
 void QuantileStats<T>::push_unsafe(const double value) {
     sorted = false;
     values.push_back(value);
-    RunningStats::push(value);
+    RunningStats::push_unsafe(value);
 }
 
 template<class T>
@@ -527,17 +527,21 @@ bool Histogram::push(double value) {
 
 
 bool Histogram::push_vector(const std::vector<double> &values) {
+    bool result = true;
 #pragma omp critical
     {
-        return push_vector_unsafe(values);
+        result = push_vector_unsafe(values);
     }
+    return result;
 }
 
 bool Histogram::push_vector(const std::vector<float> &values) {
+    bool result = true;
 #pragma omp critical
     {
-        return push_vector_unsafe(values);
+        result = push_vector_unsafe(values);
     }
+    return result;
 }
 
 bool Histogram::push_unsafe(const double value) {
