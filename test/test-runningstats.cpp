@@ -7,8 +7,8 @@
 
 using namespace runningstats;
 
-std::random_device dev;
-std::mt19937 rng(dev());
+static std::random_device dev;
+static std::mt19937 rng(dev());
 
 
 ::testing::AssertionResult RelativeNear(const double a, const double b, double delta) {
@@ -92,7 +92,7 @@ TEST(RunningStats, Mean) {
         EXPECT_TRUE(RelativeNear(s.getVar(), variance, 1e-14));
     }
 
-    for (int64_t limit = 3; limit < upper_limit; limit = limit*4/3) {
+    for (int64_t limit = 3; limit < int64_t(upper_limit); limit = limit*4/3) {
         RunningStats s;
         for (int64_t ii = -limit; ii <= limit; ++ii) {
             s.push(ii);
