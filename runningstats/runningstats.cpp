@@ -95,7 +95,8 @@ double RunningStats::getLogStddev() const {
     return std::sqrt(getLogVar());
 }
 void RunningStats::print(std::ostream& out) const {
-    out << getMean() << " +- " << getStddev() << ", " << n << " Samples, range: [" << min << ", " << max << "]";
+    out.precision(15);
+    out << std::scientific << getMean() << " +- " << getStddev() << ", " << n << " Samples, range: [" << min << ", " << max << "]";
 }
 
 std::string RunningStats::print() const {
@@ -105,7 +106,8 @@ std::string RunningStats::print() const {
 }
 
 void RunningStats::printLog(std::ostream& out) const {
-    out << getLogMean() << " +- " << getLogStddev() << ", " << n << " Samples, range: [" << log_min << ", " << log_max << "]";
+    out.precision(15);
+    out << std::scientific << getLogMean() << " +- " << getLogStddev() << ", " << n << " Samples, range: [" << log_min << ", " << log_max << "]";
 }
 
 std::string RunningStats::printLog() const {
@@ -445,9 +447,10 @@ double RunningCovariance::getMaxY() const {
     return maxY;
 }
 
-void RunningCovariance::printInfo()
-{
-    std::cout << "Variables: " << std::endl
+void RunningCovariance::printInfo() {
+    std::cout.precision(15);
+    std::cout << std::scientific
+              << "Variables: " << std::endl
               << "meanX: " << meanX << std::endl
               << "meanY: " << meanY << std::endl
               << "varSumX: " << varSumX << std::endl
