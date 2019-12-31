@@ -109,6 +109,8 @@ public:
      */
     void push(const double value);
 
+    void push(const std::vector<double>& data);
+
     /**
      * @brief push_unsafe adds a value to the statistics. This function must not be called from multiple threads at the same time.
      * @param value
@@ -217,6 +219,8 @@ public:
     void plotCDF(std::string const prefix) const;
 
     void plotHistAndCDF(std::string const prefix, double const bin_size, double const absolute = true) const;
+
+    double FriedmanDiaconisBinSize();
 
 private:
 
