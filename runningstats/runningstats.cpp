@@ -610,7 +610,8 @@ void Histogram::plotHist(const std::string prefix, const double absolute) const 
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
     cmd << "set term svg enhanced background rgb \"white\";\n"
-        << "set output \"" << prefix + ".svg\"; \n";
+        << "set output \"" << prefix + ".svg\"; \n"
+        << "set title \"n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
 
     auto const data = absolute ? getAbsoluteHist() : getRelativeHist();
 

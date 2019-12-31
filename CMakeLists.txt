@@ -14,3 +14,11 @@ add_subdirectory(test)
 
 # Install targets
 include(${CMAKE_SOURCE_DIR}/cmake/InstallConfig.cmake)
+
+add_executable(runningstats-autohist runningstats-autohist.cpp)
+
+target_link_libraries(runningstats-autohist
+    runningstats
+    )
+
+install(TARGETS runningstats-autohist DESTINATION bin)
