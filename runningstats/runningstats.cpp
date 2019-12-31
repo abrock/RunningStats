@@ -27,6 +27,15 @@ void RunningStats::push(const double value) {
     }
 }
 
+void RunningStats::push(const std::vector<double> &data) {
+#pragma omp critical
+    {
+        for (auto const val : data) {
+            push_unsafe(val);
+        }
+    }
+}
+
 void RunningStats::push_unsafe(const double value) {
     if (!std::isfinite(value)) {
         return;
@@ -310,6 +319,12 @@ template<class T>
 void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, const double absolute) const {
     plotHist(prefix + "-hist", bin_size, absolute);
     plotCDF(prefix + "-cdf");
+}
+
+template<class T>
+double QuantileStats<T>::FriedmanDiaconisBinSize() {
+    double const iqr = getQuantile(.75) - getQuantile(.25);
+    return 2 * iqr / cbrt(double(n));
 }
 
 template<class T>
