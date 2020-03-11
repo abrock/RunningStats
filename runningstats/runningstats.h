@@ -185,6 +185,8 @@ public:
     std::vector<std::pair<double, double> > getRelativeHist() const;
 
     void plotHist(std::string const prefix, double const absolute = true) const;
+
+    size_t getBinCount(double const value) const;
 };
 
 template<class T>

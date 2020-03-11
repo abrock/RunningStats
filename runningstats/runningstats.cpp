@@ -641,4 +641,13 @@ void Histogram::plotHist(const std::string prefix, const double absolute) const 
     out << cmd.str();
 }
 
+size_t Histogram::getBinCount(const double value) const {
+    int64_t const bin = int64_t(std::round(value/bin_size));
+    auto const it = data.find(bin);
+    if (it != data.end()) {
+        return it->second;
+    }
+    return 0;
+}
+
 } // namespace runningstats
