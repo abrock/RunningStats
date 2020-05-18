@@ -196,6 +196,12 @@ public:
 
     void push_unsafe(const double value);
 
+    template<class U>
+    void push(std::vector<U> const& values);
+
+    template<class U>
+    void push_unsafe(std::vector<U> const& values);
+
     Histogram getHistogram(double const bin_size);
 
     T getQuantile(const double quantile) const;

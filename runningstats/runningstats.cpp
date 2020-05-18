@@ -387,6 +387,18 @@ double QuantileStats<T>::getTrimmedMean(const T & ignore) {
 template class QuantileStats<double>;
 template class QuantileStats<float>;
 
+template void QuantileStats<double>::push(std::vector<double> const&);
+template void QuantileStats<float>::push(std::vector<double> const&);
+
+template void QuantileStats<double>::push(std::vector<float> const&);
+template void QuantileStats<float>::push(std::vector<float> const&);
+
+template void QuantileStats<double>::push_unsafe(std::vector<double> const&);
+template void QuantileStats<float>::push_unsafe(std::vector<double> const&);
+
+template void QuantileStats<double>::push_unsafe(std::vector<float> const&);
+template void QuantileStats<float>::push_unsafe(std::vector<float> const&);
+
 void RunningCovariance::push(double x, double y)
 {
     n++;
@@ -648,6 +660,23 @@ size_t Histogram::getBinCount(const double value) const {
         return it->second;
     }
     return 0;
+}
+
+template<class T>
+template<class U>
+void QuantileStats<T>::push(const std::vector<U> &values) {
+#pragma omp critical
+    {
+        push_unsafe(values);
+    }
+}
+
+template<class T>
+template<class U>
+void QuantileStats<T>::push_unsafe(const std::vector<U> &values) {
+    for (const U value : values) {
+        push_unsafe(value);
+    }
 }
 
 } // namespace runningstats
