@@ -23,6 +23,40 @@ static std::mt19937 rng(dev());
                                              << " which exceeds " << delta;
 }
 
+TEST(BinaryStats, empty) {
+    BinaryStats bin;
+    bin.get();
+    EXPECT_EQ(0, bin.getFalseCount());
+    EXPECT_EQ(0, bin.getTotalCount());
+    EXPECT_EQ(0, bin.getTrueCount());
+}
+
+TEST(RunningStats, empty) {
+    RunningStats s;
+    EXPECT_EQ(0, s.getCount());
+    EXPECT_EQ(0, s.getMean());
+    EXPECT_EQ(0, s.getStddev());
+    EXPECT_EQ(0, s.getVar());
+}
+
+TEST(QuantileStats, empty) {
+    QuantileStats<float> s;
+    EXPECT_EQ(0, s.getCount());
+    EXPECT_EQ(0, s.getMean());
+    EXPECT_EQ(0, s.getStddev());
+    EXPECT_EQ(0, s.getVar());
+    EXPECT_EQ(0, s.getAccurateStddev());
+    EXPECT_EQ(0, s.getAccurateVariance());
+    EXPECT_EQ(std::vector<float>(), s.getData());
+    s.getHistogram(1);
+    s.FriedmanDiaconisBinSize();
+    s.plotHistAndCDF("tmp", s.FriedmanDiaconisBinSize());
+    EXPECT_EQ(0, s.getInverseQuantile(0));
+    EXPECT_EQ(0, s.getLogMean());
+    EXPECT_EQ(0, s.getLogStddev());
+    EXPECT_EQ(0, s.getLogVar());
+}
+
 TEST(BinaryStats, Everything) {
     BinaryStats a;
     for (size_t ii = 0; ii < 90; ++ii) {
