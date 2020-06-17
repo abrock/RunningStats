@@ -600,6 +600,9 @@ bool Histogram::push_vector_unsafe(const std::vector<float> &values) {
 
 std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {
     std::vector<std::pair<double, double> > result;
+    if (data.empty()) {
+        return result;
+    }
     for (int64_t ii = data.begin()->first; ii <= data.rbegin()->first; ++ii) {
         auto const it = data.find(ii);
         if (it != data.end()) {
@@ -616,6 +619,9 @@ std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {
 
 std::vector<std::pair<double, double> > Histogram::getRelativeHist() const {
     std::vector<std::pair<double, double> > result;
+    if (data.empty()) {
+        return result;
+    }
     for (int64_t ii = data.begin()->first; ii <= data.rbegin()->first; ++ii) {
         auto const it = data.find(ii);
         if (it != data.end()) {
