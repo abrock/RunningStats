@@ -642,16 +642,17 @@ void Histogram::plotHist(const std::string prefix, const double absolute) const 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
-    cmd << "set term svg enhanced background rgb \"white\";\n"
-        << "set output \"" << prefix + ".svg\"; \n"
-        << "set title \"n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
+
+    cmd << "set term svg enhanced background rgb \"white\";\n";
+    cmd << "set output \"" << prefix + ".svg\"; \n";
+    cmd << "set title \"n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
 
     auto const data = absolute ? getAbsoluteHist() : getRelativeHist();
 
-    cmd << "plot " << gpl.file(data, data_file) << " w boxes notitle; \n"
-        << "set term tikz; \n"
-        << "set output \"" << prefix << ".tex\"; \n"
-        << "replot;\n";
+    cmd << "plot " << gpl.file1d(data, data_file) << " w boxes notitle; \n";
+    cmd << "set term tikz; \n";
+    cmd << "set output \"" << prefix << ".tex\"; \n";
+    cmd << "replot;\n";
 
     gpl << cmd.str();
 
