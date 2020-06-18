@@ -49,8 +49,8 @@ TEST(QuantileStats, empty) {
     EXPECT_EQ(0, s.getAccurateVariance());
     EXPECT_EQ(std::vector<float>(), s.getData());
     s.getHistogram(1);
-    s.FriedmanDiaconisBinSize();
-    s.plotHistAndCDF("tmp", s.FriedmanDiaconisBinSize());
+    s.FreedmanDiaconisBinSize();
+    s.plotHistAndCDF("tmp", s.FreedmanDiaconisBinSize());
     EXPECT_EQ(0, s.getInverseQuantile(0));
     EXPECT_EQ(0, s.getLogMean());
     EXPECT_EQ(0, s.getLogStddev());

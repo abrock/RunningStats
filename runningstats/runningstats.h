@@ -7,6 +7,9 @@
 #include <cmath>
 #include <vector>
 #include <map>
+#include <set>
+
+#include <mutex>
 
 namespace runningstats {
 
@@ -81,7 +84,13 @@ public:
 
 class RunningStats {
 
+private:
+    std::mutex push_mutex;
+
 public:
+
+    RunningStats();
+    RunningStats(RunningStats const& rhs);
 
     template<class StatsVec>
     static std::vector<double> getMean(const StatsVec& vec);
@@ -171,6 +180,8 @@ class Histogram : public RunningStats {
 public:
     Histogram(double const _bin_size);
 
+    Histogram(Histogram const& rhs);
+
     bool push(double const value);
 
     bool push_vector(std::vector<double> const& values);
@@ -188,6 +199,33 @@ public:
 
     size_t getBinCount(double const value) const;
 };
+
+class Histogram2D {
+    double const width_1;
+    double const width_2;
+
+    std::set<int64_t> bins_1, bins_2;
+
+    /**
+     * @brief data Bin counts can be addressed as data[row][col];
+     */
+    std::map<int64_t, std::map<int64_t, size_t> > data;
+
+    std::mutex push_mutex;
+
+    size_t total_count = 0;
+
+public:
+    Histogram2D(double const _bin_1, double const _bin_2);
+    Histogram2D(Histogram2D const& rhs);
+
+    bool push(double const val1, double const val2);
+
+    bool push_unsafe(double const val1, double const val2);
+
+    void plotHist(std::string const prefix, double const absolute = true) const;
+};
+
 
 template<class T>
 class QuantileStats : public RunningStats {
@@ -228,12 +266,45 @@ public:
 
     void plotHistAndCDF(std::string const prefix, double const bin_size, double const absolute = true) const;
 
-    double FriedmanDiaconisBinSize();
+    double FreedmanDiaconisBinSize();
 
 private:
 
     mutable std::vector<T> values;
     mutable bool sorted = true;
+};
+
+template<class T>
+class Stats2D {
+private:
+    std::mutex push_mutex;
+public:
+    bool push(const double a, const double b);
+
+    bool push_unsafe(const double a, const double b);
+
+    Histogram2D getHistogram2D(std::pair<double, double> const bin_sizes);
+
+    std::pair<double, double> getMedian() const;
+
+    void reserve(const size_t size);
+
+    std::vector<std::pair<T, T> > getData();
+
+    double getTrimmedMean(const T & ignore);
+
+    void sort() const;
+
+    void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
+
+    std::pair<double, double> FreedmanDiaconisBinSize();
+
+private:
+
+    mutable std::vector<std::pair<T, T>> values;
+
+    QuantileStats<T> quantiles_1;
+    QuantileStats<T> quantiles_2;
 };
 
 } // namespace runningstats

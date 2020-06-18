@@ -5,12 +5,14 @@
 # find_package(Foo REQUIRED)
 # include_directories(${FOO_INCLUDE_DIRS})
 
-add_executable(test-runningstats test-runningstats.cpp)
-
-target_link_libraries(test-runningstats ${LIBRARY_NAME})
 
 find_package(GTest REQUIRED)
-target_link_libraries(test-runningstats pthread ${GTEST_BOTH_LIBRARIES})
+
+foreach(executable test-runningstats test-2d)
+add_executable(${executable} ${executable}.cpp)
+target_link_libraries(${executable} ${LIBRARY_NAME})
+target_link_libraries(${executable} pthread ${GTEST_BOTH_LIBRARIES})
+endforeach()
 
 #install(TARGETS test-runningstats
 # In order to export target, uncomment next line

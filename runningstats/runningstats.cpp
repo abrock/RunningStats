@@ -10,6 +10,26 @@
 
 namespace runningstats {
 
+RunningStats::RunningStats() {}
+
+RunningStats::RunningStats(const RunningStats &rhs) :
+    sum(rhs.sum),
+    squaresum(rhs.squaresum),
+    min(rhs.min),
+    max(rhs.max),
+    n(rhs.n),
+    mean(rhs.mean),
+    varSum(rhs.varSum),
+    calcLog(rhs.calcLog),
+    log_sum(rhs.log_sum),
+    log_square_sum(rhs.log_square_sum),
+    log_min(rhs.log_min),
+    log_max(rhs.log_max),
+    log_n(rhs.log_n)
+{
+
+}
+
 void RunningStats::clear() {
     sum = 0;
     squaresum = 0;
@@ -21,10 +41,8 @@ void RunningStats::push(const double value) {
     if (!std::isfinite(value)) {
         return;
     }
-#pragma omp critical
-    {
-        push_unsafe(value);
-    }
+    const std::lock_guard<std::mutex> lock(push_mutex);
+    push_unsafe(value);
 }
 
 void RunningStats::push(const std::vector<double> &data) {
@@ -322,7 +340,7 @@ void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin
 }
 
 template<class T>
-double QuantileStats<T>::FriedmanDiaconisBinSize() {
+double QuantileStats<T>::FreedmanDiaconisBinSize() {
     double const iqr = getQuantile(.75) - getQuantile(.25);
     return 2 * iqr / cbrt(double(n));
 }
@@ -541,6 +559,10 @@ Histogram::Histogram(const double _bin_size) : bin_size(_bin_size) {
 
 }
 
+Histogram::Histogram(const Histogram &rhs): bin_size(rhs.bin_size), data(rhs.data) {
+
+}
+
 bool Histogram::push(double value) {
     if (!std::isfinite(value)) {
         return false;
@@ -685,5 +707,134 @@ void QuantileStats<T>::push_unsafe(const std::vector<U> &values) {
         push_unsafe(value);
     }
 }
+
+Histogram2D::Histogram2D(const double _bin_1, const double _bin_2) : width_1(_bin_1), width_2(_bin_2) {
+}
+
+Histogram2D::Histogram2D(const Histogram2D &rhs) : width_1(rhs.width_1), width_2(rhs.width_2), data(rhs.data) {}
+
+bool Histogram2D::push(const double val1, const double val2) {
+    if (!std::isfinite(val1) || !std::isfinite(val2)) {
+        return false;
+    }
+    const std::lock_guard<std::mutex> lock(push_mutex);
+    push_unsafe(val1, val2);
+    return true;
+}
+
+bool Histogram2D::push_unsafe(const double val1, const double val2) {
+    if (!std::isfinite(val1) || !std::isfinite(val2)) {
+        return false;
+    }
+    int64_t const bin1 = int64_t(std::round(val1/width_1));
+    int64_t const bin2 = int64_t(std::round(val2/width_2));
+    data[bin1][bin2]++;
+    bins_1.insert(bin1);
+    bins_2.insert(bin2);
+    total_count++;
+    return true;
+}
+
+void Histogram2D::plotHist(const std::string prefix, const double absolute) const {
+    std::string const data_file = prefix + ".data";
+    std::ofstream data_out(data_file);
+    for (auto const& it : data) {
+        double const row = width_1 * double(it.first);
+        for (const double col_id: bins_2) {
+            double const col = width_2 * double(col_id);
+            auto const found = it.second.find(col_id);
+            if (it.second.end() != found) {
+                size_t const count = found->second;
+                double const probability = double(count)/double(total_count);
+                double const density = probability / (width_1 * width_2);
+                double const val = absolute ? count : density;
+                data_out << row << "\t" << col << "\t" << val << std::endl;
+            }
+            else {
+                data_out << row << "\t" << col << "\t" << 0 <<  std::endl;
+            }
+        }
+        /*
+        for (auto const& it2 : it.second) {
+            double const col = width_2 * double(it2.first);
+            size_t const count = it2.second;
+            double const probability = double(count)/double(total_count);
+            double const density = probability / (width_1 * width_2);
+            double const val = absolute ? count : density;
+            data_out << row << "\t" << col << "\t" << val << std::endl;
+        }
+        */
+        data_out << std::endl;
+    }
+    std::stringstream cmd;
+    cmd << "set term svg enhanced background rgb 'white';\n";
+    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << "plot '" << data_file << "' u 2:1:3 with image;\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
+    cmd << "replot;\n";
+    gnuplotio::Gnuplot plt;
+    plt << cmd.str();
+    std::ofstream cmd_out(prefix + ".gpl");
+    cmd_out << cmd.str();
+}
+
+template<class T>
+bool Stats2D<T>::push(const double a, const double b) {
+    if (!std::isfinite(a) || !std::isfinite(b)) {
+        return false;
+    }
+    std::lock_guard<std::mutex> const lock(push_mutex);
+    push_unsafe(a, b);
+    return true;
+}
+
+template<class T>
+bool Stats2D<T>::push_unsafe(const double a, const double b) {
+    if (!std::isfinite(a) || !std::isfinite(b)) {
+        return false;
+    }
+    values.push_back({a,b});
+    quantiles_1.push_unsafe(a);
+    quantiles_2.push_unsafe(b);
+    return true;
+}
+
+template<class T>
+Histogram2D Stats2D<T>::getHistogram2D(const std::pair<double, double> bin_sizes) {
+    Histogram2D result(bin_sizes.first, bin_sizes.second);
+    for (std::pair<T, T> const& d : values) {
+        result.push_unsafe(d.first, d.second);
+    }
+    return result;
+}
+
+template<class T>
+std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
+    double const freed_1 = quantiles_1.FreedmanDiaconisBinSize();
+    double const freed_2 = quantiles_2.FreedmanDiaconisBinSize();
+    double const range_1 = quantiles_1.getMax() - quantiles_1.getMin();
+    double const range_2 = quantiles_2.getMax() - quantiles_2.getMin();
+    double const num_bins_1 = range_1 / freed_1;
+    double const num_bins_2 = range_2 / freed_2;
+    double const num_bins = std::min(num_bins_1, num_bins_2);
+    //double const num_bins_per_dim = std::sqrt(num_bins);
+    double const alpha = 1.0 / std::sqrt(double(num_bins)/(num_bins_1 * num_bins_2));
+    std::pair<double, double> result {
+        (freed_1 * alpha),
+        (freed_2 * alpha)};
+
+/*
+    double const bin_factor = std::sqrt(freed_2 / freed_1);
+    std::pair<double, double> result {
+        (range_1*bin_factor/num_bins_per_dim),
+        (range_2/(num_bins_per_dim * bin_factor))};
+        */
+    return result;
+}
+
+template class Stats2D<float>;
+template class Stats2D<double>;
+
 
 } // namespace runningstats
