@@ -274,8 +274,10 @@ T QuantileStats<T>::getQuantile(const double quantile) const {
     if (values.size() == 1) {
         return values[0];
     }
-    sort();
-    return values[static_cast<size_t>(quantile * (values.size()-1))];
+    //sort();
+    size_t const n = static_cast<size_t>(quantile * (values.size()-1));
+    std::nth_element(values.begin(), values.begin() + n, values.end());
+    return values[n];
 }
 
 template<class T>
@@ -691,6 +693,30 @@ size_t Histogram::getBinCount(const double value) const {
     return 0;
 }
 
+double Histogram::getLikelihood() const {
+    double result = 1;
+    for (std::pair<int64_t, size_t> const& it : data) {
+        double const pi_k = double(it.second) / double(n);
+        double const p_k = pi_k / bin_size;
+        result *= p_k;
+    }
+    return result;
+}
+
+double Histogram::getPosteriorProbability() const {
+    double result = 0;
+    double const N = n; // Total number of samples
+    double const M = (getMax() - getMin()) / bin_size; // Total number of bins (including empty ones)
+    result += n * std::log(M)
+            + std::lgamma(M/2)
+            - M * std::lgamma(0.5)
+            - std::lgamma(N + M/2);
+    for (std::pair<int64_t, size_t> const& it : data) {
+        result += std::lgamma(0.5 + double(it.second));
+    }
+    return result;
+}
+
 template<class T>
 template<class U>
 void QuantileStats<T>::push(const std::vector<U> &values) {
@@ -769,7 +795,7 @@ void Histogram2D::plotHist(const std::string prefix, const double absolute) cons
     std::stringstream cmd;
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
-    cmd << "plot '" << data_file << "' u 2:1:3 with image;\n";
+    cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << "replot;\n";
@@ -810,6 +836,18 @@ Histogram2D Stats2D<T>::getHistogram2D(const std::pair<double, double> bin_sizes
 }
 
 template<class T>
+Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double> bin_sizes) {
+    Histogram2Dfixed result(
+                bin_sizes.first, bin_sizes.second,
+                quantiles_1.getMin(), quantiles_2.getMin(),
+                quantiles_1.getMax(), quantiles_2.getMax());
+    for (std::pair<T, T> const& d : values) {
+        result.push_unsafe(d.first, d.second);
+    }
+    return result;
+}
+
+template<class T>
 std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
     double const freed_1 = quantiles_1.FreedmanDiaconisBinSize();
     double const freed_2 = quantiles_2.FreedmanDiaconisBinSize();
@@ -822,9 +860,9 @@ std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
     double const alpha = 1.0 / std::sqrt(double(num_bins)/(num_bins_1 * num_bins_2));
     std::pair<double, double> result {
         (freed_1 * alpha),
-        (freed_2 * alpha)};
+                (freed_2 * alpha)};
 
-/*
+    /*
     double const bin_factor = std::sqrt(freed_2 / freed_1);
     std::pair<double, double> result {
         (range_1*bin_factor/num_bins_per_dim),
@@ -835,6 +873,77 @@ std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
 
 template class Stats2D<float>;
 template class Stats2D<double>;
+
+Histogram2Dfixed::Histogram2Dfixed(
+        const double _width_1,
+        const double _width_2,
+        const double _min_1,
+        const double _min_2,
+        const double _max_1,
+        const double _max_2) :
+    width_1(_width_1),
+    width_2(_width_2),
+    min_1(_min_1),
+    min_2(_min_2),
+    max_1(_max_1),
+    max_2(_max_2){
+    double const range_1 = max_1 - min_1;
+    double const range_2 = max_2 - min_2;
+    data = std::vector<std::vector<size_t>>
+                                            (std::ceil(range_1 / width_1)+1,
+                                             std::vector<size_t>(std::ceil(range_2 / width_2)+1, 0));
+}
+
+Histogram2Dfixed::Histogram2Dfixed(const Histogram2Dfixed &rhs):
+    width_1(rhs.width_1),
+    width_2(rhs.width_2),
+    min_1(rhs.min_1),
+    min_2(rhs.min_2),
+    max_1(rhs.max_1),
+    max_2(rhs.max_2),
+    data(rhs.data),
+    total_count(rhs.total_count) {
+}
+
+Histogram2Dfixed::~Histogram2Dfixed() {
+    data.clear();
+}
+
+bool Histogram2Dfixed::push_unsafe(const double val1, const double val2) {
+    if (!std::isfinite(val1) || !std::isfinite(val2) || val1 < min_1 || val1 > max_1 || val2 < min_2 || val2 > max_2) {
+        return false;
+    }
+    size_t const row = std::round((val1 - min_1) / width_1);
+    size_t const col = std::round((val2 - min_2) / width_2);
+    data[row][col]++;
+    total_count++;
+    return true;
+}
+
+void Histogram2Dfixed::plotHist(const std::string prefix, const double absolute) const {
+    std::string const data_file = prefix + ".data";
+    std::ofstream data_out(data_file);
+    for (size_t row = 0; row < data.size(); ++row) {
+        std::vector<size_t> const& row_data = data[row];
+        double const row_bin = width_1 * row + min_1;
+        for (size_t col = 0; col < row_data.size(); ++col) {
+            double const col_bin = width_2 * col + min_2;
+            data_out << row_bin << "\t" << col_bin << "\t" << row_data[col] << std::endl;
+        }
+        data_out << std::endl;
+    }
+    std::stringstream cmd;
+    cmd << "set term svg enhanced background rgb 'white';\n";
+    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
+    cmd << "replot;\n";
+    gnuplotio::Gnuplot plt;
+    plt << cmd.str();
+    std::ofstream cmd_out(prefix + ".gpl");
+    cmd_out << cmd.str();
+}
 
 
 } // namespace runningstats

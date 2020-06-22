@@ -198,6 +198,9 @@ public:
     void plotHist(std::string const prefix, double const absolute = true) const;
 
     size_t getBinCount(double const value) const;
+
+    double getLikelihood() const;
+    double getPosteriorProbability() const;
 };
 
 class Histogram2D {
@@ -218,6 +221,36 @@ class Histogram2D {
 public:
     Histogram2D(double const _bin_1, double const _bin_2);
     Histogram2D(Histogram2D const& rhs);
+
+    bool push(double const val1, double const val2);
+
+    bool push_unsafe(double const val1, double const val2);
+
+    void plotHist(std::string const prefix, double const absolute = true) const;
+};
+
+class Histogram2Dfixed {
+    double const width_1;
+    double const width_2;
+    double const min_1, min_2;
+    double const max_1, max_2;
+
+    /**
+     * @brief data Bin counts can be addressed as data[row][col];
+     */
+    std::vector<std::vector<size_t> > data;
+
+    std::mutex push_mutex;
+
+    size_t total_count = 0;
+
+public:
+    Histogram2Dfixed(double const _bin_1, double const _bin_2,
+                     double const _min_1, double const _min_2,
+                     double const _max_1, double const _max_2);
+    Histogram2Dfixed(Histogram2Dfixed const& rhs);
+
+    ~Histogram2Dfixed();
 
     bool push(double const val1, double const val2);
 
@@ -284,6 +317,8 @@ public:
     bool push_unsafe(const double a, const double b);
 
     Histogram2D getHistogram2D(std::pair<double, double> const bin_sizes);
+
+    Histogram2Dfixed getHistogram2Dfixed(std::pair<double, double> const bin_sizes);
 
     std::pair<double, double> getMedian() const;
 
