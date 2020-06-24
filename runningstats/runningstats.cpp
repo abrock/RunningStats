@@ -936,7 +936,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
         double const row_bin = width_1 * row + min_1;
         for (size_t col = 0; col < row_data.size(); ++col) {
             double const col_bin = width_2 * col + min_2;
-            data_out << row_bin << "\t" << col_bin << "\t" << row_data[col] << std::endl;
+            data_out << row_bin << "\t" << col_bin << "\t" << (conf.absolute ? row_data[col] : double(row_data[col]) / (total_count * width_1 * width_2)) << std::endl;
         }
         data_out << std::endl;
     }
