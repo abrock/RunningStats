@@ -13,6 +13,37 @@
 
 namespace runningstats {
 
+class HistConfig {
+public:
+    /**
+     * @brief logX logarithmic scale of the x axis.
+     */
+    bool logX = false;
+
+    /**
+     * @brief logY logarithmic scale of the y axis.
+     */
+    bool logY = false;
+
+    /**
+     * @brief logCB logarithmic scale of the heatmap (for 2D histograms only)
+     */
+    bool logCB = false;
+
+    /**
+     * @brief absolute Use absolute bin counts instead of estimated probability densities
+     */
+    bool absolute = false;
+
+    std::string title;
+
+    std::string xLabel;
+
+    std::string yLabel;
+
+    std::string toString() const;
+};
+
 /**
  * @brief The BinaryStats class collects statistics about binary values.
  */
@@ -256,7 +287,8 @@ public:
 
     bool push_unsafe(double const val1, double const val2);
 
-    void plotHist(std::string const prefix, double const absolute = true) const;
+    void plotHist(std::string const prefix, const bool absolute = true) const;
+    void plotHist(std::string const prefix, const HistConfig &conf) const;
 };
 
 

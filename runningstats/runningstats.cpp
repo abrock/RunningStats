@@ -920,7 +920,7 @@ bool Histogram2Dfixed::push_unsafe(const double val1, const double val2) {
     return true;
 }
 
-void Histogram2Dfixed::plotHist(const std::string prefix, const double absolute) const {
+void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf) const {
     std::string const data_file = prefix + ".data";
     std::ofstream data_out(data_file);
     for (size_t row = 0; row < data.size(); ++row) {
@@ -943,6 +943,35 @@ void Histogram2Dfixed::plotHist(const std::string prefix, const double absolute)
     plt << cmd.str();
     std::ofstream cmd_out(prefix + ".gpl");
     cmd_out << cmd.str();
+}
+
+void Histogram2Dfixed::plotHist(const std::string prefix, const bool absolute) const {
+    HistConfig conf;
+    conf.absolute = absolute;
+    plotHist(prefix, conf);
+}
+
+std::string HistConfig::toString() const {
+    std::stringstream out;
+    if (logCB) {
+        out << "set logscale cb;\n";
+    }
+    if (logX) {
+        out << "set logscale x;\n";
+    }
+    if (logY) {
+        out << "set logscale y;\n";
+    }
+    if (!xLabel.empty()) {
+        out << "set xlabel '" << xLabel << "';\n";
+    }
+    if (!yLabel.empty()) {
+        out << "set ylabel '" << yLabel << "';\n";
+    }
+    if (!title.empty()) {
+        out << "set title '" << title << "';\n";
+    }
+    return out.str();
 }
 
 

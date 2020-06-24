@@ -46,8 +46,9 @@ TEST(Plot2D, Stats2Dfixed) {
         stats.push_unsafe(.1*dist(engine), dist(engine));
     }
 
-    runningstats::Histogram2Dfixed hist = stats.getHistogram2Dfixed(stats.FreedmanDiaconisBinSize());
-    hist.plotHist("stats-fixed-normal-2d", false);
+    std::pair<double, double> bin = stats.FreedmanDiaconisBinSize();
+    stats.getHistogram2Dfixed(bin).plotHist("stats-fixed-normal-2d", false);
+    stats.getHistogram2Dfixed({bin.first/2, bin.second/2}).plotHist("stats-fixed-normal-2d-half", false);
 
 }
 
