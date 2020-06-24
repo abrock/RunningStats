@@ -711,8 +711,16 @@ double Histogram::getPosteriorProbability() const {
             + std::lgamma(M/2)
             - M * std::lgamma(0.5)
             - std::lgamma(N + M/2);
-    for (std::pair<int64_t, size_t> const& it : data) {
-        result += std::lgamma(0.5 + double(it.second));
+    int64_t const start = data.begin()->first;
+    int64_t const end = data.rbegin()->first;
+    for (int64_t ii = start; ii <= end; ++ii) {
+        auto const it = data.find(ii);
+        if (it != data.end()) {
+            result += std::lgamma(.5 + double(it->second));
+        }
+        else {
+            result += std::lgamma(.5);
+        }
     }
     return result;
 }

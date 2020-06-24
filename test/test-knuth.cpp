@@ -13,14 +13,10 @@ static std::mt19937 engine(dev());
 
 TEST(Knuth, brute_force) {
     runningstats::QuantileStats<float> data;
-    //std::normal_distribution<double> dist;
-    std::uniform_real_distribution<double> dist;
+    std::normal_distribution<double> dist;
+    //std::uniform_real_distribution<double> dist;
     for (size_t ii = 0; ii < 1*1000; ++ii) {
-        double dice = dist(engine);
-        if (dice > .8) {
-            data.push_unsafe(dist(engine));
-        }
-        data.push_unsafe(dist(engine)/3);
+        data.push_unsafe(dist(engine));
     }
     double const range = data.getMax() - data.getMin();
     std::ofstream data_out("normal-likelihood.data");
