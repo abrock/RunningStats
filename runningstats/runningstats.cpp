@@ -944,14 +944,22 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString();
+    cmd << "set xrange[" << min_1 << " : " << max_1 << "];\n";
+    cmd << "set yrange[" << min_2 << " : " << max_2 << "];\n";
+    cmd << "set xtics out;\n";
+    cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << "replot;\n";
-    gnuplotio::Gnuplot plt;
-    plt << cmd.str();
+    cmd << "set term tikz;\n";
+    cmd << "set output '" << prefix << ".tex';\n";
+    cmd << "replot;\n";
     std::ofstream cmd_out(prefix + ".gpl");
     cmd_out << cmd.str();
+    cmd_out.close();
+    gnuplotio::Gnuplot plt;
+    plt << cmd.str();
 }
 
 void Histogram2Dfixed::plotHist(const std::string prefix, const bool absolute) const {
