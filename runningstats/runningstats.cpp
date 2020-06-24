@@ -835,7 +835,7 @@ bool Stats2D<T>::push_unsafe(const double a, const double b) {
 }
 
 template<class T>
-Histogram2D Stats2D<T>::getHistogram2D(const std::pair<double, double> bin_sizes) {
+Histogram2D Stats2D<T>::getHistogram2D(const std::pair<double, double> bin_sizes) const {
     Histogram2D result(bin_sizes.first, bin_sizes.second);
     for (std::pair<T, T> const& d : values) {
         result.push_unsafe(d.first, d.second);
@@ -844,7 +844,7 @@ Histogram2D Stats2D<T>::getHistogram2D(const std::pair<double, double> bin_sizes
 }
 
 template<class T>
-Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double> bin_sizes) {
+Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double> bin_sizes) const {
     Histogram2Dfixed result(
                 bin_sizes.first, bin_sizes.second,
                 quantiles_1.getMin(), quantiles_2.getMin(),
@@ -889,8 +889,8 @@ Histogram2Dfixed::Histogram2Dfixed(
         const double _min_2,
         const double _max_1,
         const double _max_2) :
-    width_1(_width_1),
-    width_2(_width_2),
+    width_1(sanitize_bin_width(_width_1, _min_1, _max_1)),
+    width_2(sanitize_bin_width(_width_2, _min_2, _max_2)),
     min_1(_min_1),
     min_2(_min_2),
     max_1(_max_1),
@@ -917,6 +917,17 @@ Histogram2Dfixed::~Histogram2Dfixed() {
     data.clear();
 }
 
+double Histogram2Dfixed::sanitize_bin_width(const double width, const double min, const double max) {
+    if (!std::isfinite(width) || !std::isfinite(min) || !std::isfinite(max)) {
+        return 1;
+    }
+    if (width <= 0
+            || (std::abs(max) + std::abs(min)) / width >= std::vector<double>().max_size()) {
+        return std::max(max-min, 1.0);
+    }
+    return width;
+}
+
 bool Histogram2Dfixed::push_unsafe(const double val1, const double val2) {
     if (!std::isfinite(val1) || !std::isfinite(val2) || val1 < min_1 || val1 > max_1 || val2 < min_2 || val2 > max_2) {
         return false;
@@ -941,11 +952,13 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
         data_out << std::endl;
     }
     std::stringstream cmd;
+    bool const range_1_empty = (min_1 == max_1);
+    bool const range_2_empty = (min_2 == max_2);
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString();
-    cmd << "set xrange[" << min_1 << " : " << max_1 << "];\n";
-    cmd << "set yrange[" << min_2 << " : " << max_2 << "];\n";
+    cmd << "set xrange[" << min_1 - (range_1_empty ? 1:0) << " : " << max_1 + (range_1_empty ? 1:0) << "];\n";
+    cmd << "set yrange[" << min_2 - (range_2_empty ? 1:0) << " : " << max_2 + (range_2_empty ? 1:0) << "];\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";

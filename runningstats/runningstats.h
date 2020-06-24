@@ -285,6 +285,7 @@ class Histogram2Dfixed {
 
     size_t total_count = 0;
 
+
 public:
     Histogram2Dfixed(double const _bin_1, double const _bin_2,
                      double const _min_1, double const _min_2,
@@ -292,6 +293,8 @@ public:
     Histogram2Dfixed(Histogram2Dfixed const& rhs);
 
     ~Histogram2Dfixed();
+
+    static double sanitize_bin_width(double const width, double const min, double const max);
 
     bool push(double const val1, double const val2);
 
@@ -358,9 +361,9 @@ public:
 
     bool push_unsafe(const double a, const double b);
 
-    Histogram2D getHistogram2D(std::pair<double, double> const bin_sizes);
+    Histogram2D getHistogram2D(std::pair<double, double> const bin_sizes) const;
 
-    Histogram2Dfixed getHistogram2Dfixed(std::pair<double, double> const bin_sizes);
+    Histogram2Dfixed getHistogram2Dfixed(std::pair<double, double> const bin_sizes) const;
 
     std::pair<double, double> getMedian() const;
 

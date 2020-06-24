@@ -55,6 +55,24 @@ TEST(Plot2D, Stats2Dfixed) {
 
 }
 
+TEST(Plot2D, Stats2Dfixed_degenerate) {
+    std::normal_distribution<double> dist;
+
+    runningstats::Stats2D<float> stats;
+
+    for (size_t ii = 0; ii < 10*1000; ++ii) {
+        stats.push_unsafe(0, dist(engine));
+    }
+
+    std::pair<double, double> bin = stats.FreedmanDiaconisBinSize();
+    HistConfig conf;
+    conf.setTitle("2D normal distribution, F-D bin width").setXLabel("0").setYLabel("N(0,1²)").setLogCB();
+    stats.getHistogram2Dfixed(bin).plotHist("stats-fixed-degenerate-2d", conf);
+    conf.setTitle("2D normal distribution, F-D/2 bin width");
+    stats.getHistogram2Dfixed({bin.first/2, bin.second/2}).plotHist("stats-fixed-degenerate-2d-half", conf);
+
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;
