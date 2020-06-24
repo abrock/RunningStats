@@ -42,6 +42,16 @@ public:
     std::string yLabel;
 
     std::string toString() const;
+
+    HistConfig& setLogX(bool const val = true);
+    HistConfig& setLogY(bool const val = true);
+    HistConfig& setLogCB(bool const val = true);
+    HistConfig& setAbsolute(bool const val = true);
+    HistConfig& setRelative(bool const val = true);
+
+    HistConfig& setTitle(std::string const val);
+    HistConfig& setXLabel(std::string const val);
+    HistConfig& setYLabel(std::string const val);
 };
 
 /**

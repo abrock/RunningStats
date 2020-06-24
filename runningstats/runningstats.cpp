@@ -943,7 +943,8 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     std::stringstream cmd;
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
-    cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
+    cmd << conf.toString();
+    cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << "replot;\n";
@@ -980,6 +981,46 @@ std::string HistConfig::toString() const {
         out << "set title '" << title << "';\n";
     }
     return out.str();
+}
+
+HistConfig &HistConfig::setLogX(const bool val) {
+    logX = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setLogY(const bool val) {
+    logY = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setLogCB(bool const val) {
+    logCB = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setAbsolute(const bool val) {
+    absolute = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setRelative(bool const val) {
+    absolute = !val;
+    return *this;
+}
+
+HistConfig &HistConfig::setTitle(const std::string val) {
+    title = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setXLabel(const std::string val) {
+    xLabel = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setYLabel(const std::string val) {
+    yLabel = val;
+    return *this;
 }
 
 

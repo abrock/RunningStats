@@ -47,8 +47,11 @@ TEST(Plot2D, Stats2Dfixed) {
     }
 
     std::pair<double, double> bin = stats.FreedmanDiaconisBinSize();
-    stats.getHistogram2Dfixed(bin).plotHist("stats-fixed-normal-2d", false);
-    stats.getHistogram2Dfixed({bin.first/2, bin.second/2}).plotHist("stats-fixed-normal-2d-half", false);
+    HistConfig conf;
+    conf.setTitle("2D normal distribution, F-D bin width").setXLabel("N(0,0.1²)").setYLabel("N(0,1²)");
+    stats.getHistogram2Dfixed(bin).plotHist("stats-fixed-normal-2d", conf);
+    conf.setTitle("2D normal distribution, F-D/2 bin width");
+    stats.getHistogram2Dfixed({bin.first/2, bin.second/2}).plotHist("stats-fixed-normal-2d-half", conf);
 
 }
 
