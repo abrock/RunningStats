@@ -305,10 +305,17 @@ void QuantileStats<T>::sort() const {
 }
 
 template<class T>
+void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const HistConfig conf) const {
+    Histogram h(bin_size);
+    h.push_vector_unsafe(values);
+    h.plotHist(prefix, conf);
+}
+
+template<class T>
 void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const double absolute) const {
     Histogram h(bin_size);
     h.push_vector_unsafe(values);
-    h.plotHist(prefix, absolute);
+    h.plotHist(prefix, HistConfig().setAbsolute());
 }
 
 template<class T>
@@ -649,7 +656,7 @@ std::vector<std::pair<double, double> > Histogram::getRelativeHist() const {
     for (int64_t ii = data.begin()->first; ii <= data.rbegin()->first; ++ii) {
         auto const it = data.find(ii);
         if (it != data.end()) {
-            result.push_back(std::pair<double, double>(it->first * bin_size, double(it->second)/n));
+            result.push_back(std::pair<double, double>(it->first * bin_size, double(it->second)/(double(n)*bin_size)));
         }
         else {
             result.push_back(std::pair<double, double>(ii * bin_size, 0.0));
@@ -659,7 +666,7 @@ std::vector<std::pair<double, double> > Histogram::getRelativeHist() const {
     return result;
 }
 
-void Histogram::plotHist(const std::string prefix, const double absolute) const {
+void Histogram::plotHist(const std::string prefix, const HistConfig conf) const {
     if (data.empty()) {
         return;
     }
@@ -671,9 +678,10 @@ void Histogram::plotHist(const std::string prefix, const double absolute) const 
     cmd << "set output \"" << prefix + ".svg\"; \n";
     cmd << "set title \"n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
 
-    auto const data = absolute ? getAbsoluteHist() : getRelativeHist();
+    auto const data = conf.absolute ? getAbsoluteHist() : getRelativeHist();
 
     cmd << "plot " << gpl.file1d(data, data_file) << " w boxes notitle; \n";
+    cmd << conf.toString();
     cmd << "set term tikz; \n";
     cmd << "set output \"" << prefix << ".tex\"; \n";
     cmd << "replot;\n";
@@ -682,6 +690,10 @@ void Histogram::plotHist(const std::string prefix, const double absolute) const 
 
     std::ofstream out(prefix + ".gpl");
     out << cmd.str();
+}
+
+void Histogram::plotHist(const std::string prefix, const bool absolute) const {
+    plotHist(prefix, HistConfig().setAbsolute(absolute));
 }
 
 size_t Histogram::getBinCount(const double value) const {

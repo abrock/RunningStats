@@ -236,7 +236,8 @@ public:
     std::vector<std::pair<double, double> > getAbsoluteHist() const;
     std::vector<std::pair<double, double> > getRelativeHist() const;
 
-    void plotHist(std::string const prefix, double const absolute = true) const;
+    void plotHist(std::string const prefix, bool const absolute = true) const;
+    void plotHist(std::string const prefix, HistConfig const conf) const;
 
     size_t getBinCount(double const value) const;
 
@@ -339,6 +340,7 @@ public:
     void sort() const;
 
     void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
+    void plotHist(std::string const prefix, double const bin_size, HistConfig const conf) const;
 
     void plotCDF(std::string const prefix) const;
 
