@@ -1119,9 +1119,30 @@ T &Image1D<T>::operator[](double index) {
     return neg[ind_neg];
 }
 
+template<class T>
+Image2D<T>::Image2D(const double _width1, double const _width2) : width1(_width1), width2(_width2) {
+}
+
+template<class T>
+Image1D<T> &Image2D<T>::operator[](const double index) {
+    int64_t ind = std::round(index / width1);
+    if (ind >= 0) {
+        while (ind+2 > pos.size()) {
+            pos.push_back(Image1D<T>(width2));
+        }
+        return pos[ind];
+    }
+    size_t ind_neg = -ind;
+    while (ind_neg + 2 > neg.size()) {
+        neg.push_back(Image1D<T>(width2));
+    }
+    return neg[ind_neg];
+}
+
 template class Image1D<double>;
-
 template class Image1D<RunningStats>;
-
+template class Image2D<double>;
+template class Image2D<size_t>;
+template class Image2D<RunningStats>;
 
 } // namespace runningstats

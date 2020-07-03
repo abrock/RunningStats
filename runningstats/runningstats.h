@@ -400,6 +400,7 @@ private:
 
 template<class T>
 class Image1D {
+protected:
     std::vector<T> pos;
     std::vector<T> neg;
 
@@ -408,6 +409,20 @@ public:
     Image1D(double const _width);
 
     T& operator[](double index);
+};
+
+template<class T>
+class Image2D {
+    double const width1;
+    double const width2;
+
+    std::vector<Image1D<T> > pos;
+    std::vector<Image1D<T> > neg;
+
+public:
+    Image2D(double const _width1, const double _width2);
+
+    Image1D<T>& operator[](double const index);
 };
 
 } // namespace runningstats
