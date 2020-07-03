@@ -268,6 +268,17 @@ T QuantileStats<T>::getQuantile(const double quantile) const {
     if (quantile >= 1) {
         return max;
     }
+    return getQuantile(quantile, values);
+}
+
+template<class T>
+T QuantileStats<T>::getQuantile(const double quantile, std::vector<T>& values)  {
+    if (quantile <= 0) {
+        return getMin(values);
+    }
+    if (quantile >= 1) {
+        return getMax(values);
+    }
     if (values.size() == 0) {
         return 0;
     }
@@ -278,6 +289,34 @@ T QuantileStats<T>::getQuantile(const double quantile) const {
     size_t const n = static_cast<size_t>(quantile * (values.size()-1));
     std::nth_element(values.begin(), values.begin() + n, values.end());
     return values[n];
+}
+
+template<class T>
+double QuantileStats<T>::getMin(const std::vector<T> &values) {
+    if (values.empty()) {
+        return 0;
+    }
+    T result = values[0];
+    for (size_t ii = 1; ii < values.size(); ++ii) {
+        if (values[ii] < result) {
+            result = values[ii];
+        }
+    }
+    return double(result);
+}
+
+template<class T>
+double QuantileStats<T>::getMax(const std::vector<T> &values) {
+    if (values.empty()) {
+        return 0;
+    }
+    T result = values[0];
+    for (size_t ii = 1; ii < values.size(); ++ii) {
+        if (values[ii] > result) {
+            result = values[ii];
+        }
+    }
+    return double(result);
 }
 
 template<class T>
@@ -426,7 +465,7 @@ template void QuantileStats<float>::push_unsafe(std::vector<double> const&);
 template void QuantileStats<double>::push_unsafe(std::vector<float> const&);
 template void QuantileStats<float>::push_unsafe(std::vector<float> const&);
 
-void RunningCovariance::push(double x, double y)
+void RunningCovariance::push_unsafe(double x, double y)
 {
     n++;
     if (n == 1) {
@@ -451,6 +490,11 @@ void RunningCovariance::push(double x, double y)
         maxX = std::max(maxX, x);
         maxY = std::max(maxY, y);
     }
+}
+
+void RunningCovariance::push(double x, double y) {
+    std::lock_guard<std::mutex> const guard(push_mutex);
+    push_unsafe(x, y);
 }
 
 double RunningCovariance::getMeanX() {

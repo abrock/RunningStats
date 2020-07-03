@@ -85,8 +85,8 @@ public:
     size_t getFalseCount() const;
 };
 
-class RunningCovariance
-{
+class RunningCovariance {
+    std::mutex push_mutex;
 public:
     size_t n = 0;
     double
@@ -121,6 +121,7 @@ public:
     double getMaxY() const;
 
     void printInfo();
+    void push_unsafe(double x, double y);
 };
 
 class RunningStats {
@@ -347,6 +348,14 @@ public:
     void plotHistAndCDF(std::string const prefix, double const bin_size, double const absolute = true) const;
 
     double FreedmanDiaconisBinSize();
+
+    static T getQuantile(const double quantile, std::vector<T> &values);
+
+    static double getMin(const std::vector<T> &values);
+    static double getMax(const std::vector<T> &values);
+
+    using RunningStats::getMin;
+    using RunningStats::getMax;
 
 private:
 
