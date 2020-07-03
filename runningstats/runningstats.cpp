@@ -1121,5 +1121,7 @@ T &Image1D<T>::operator[](double index) {
 
 template class Image1D<double>;
 
+template class Image1D<RunningStats>;
+
 
 } // namespace runningstats
