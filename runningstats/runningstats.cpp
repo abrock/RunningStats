@@ -1100,5 +1100,26 @@ HistConfig &HistConfig::setYLabel(const std::string val) {
     return *this;
 }
 
+template<class T>
+Image1D<T>::Image1D(const double _width) :width(_width) {}
+
+template<class T>
+T &Image1D<T>::operator[](double index) {
+    int64_t ind = std::round(index / width);
+    if (ind >= 0) {
+        if (ind+2 > pos.size()) {
+            pos.resize(ind+1);
+        }
+        return pos[ind];
+    }
+    size_t ind_neg = -ind;
+    if (ind_neg + 2 > neg.size()) {
+        neg.resize(ind_neg + 1);
+    }
+    return neg[ind_neg];
+}
+
+template class Image1D<double>;
+
 
 } // namespace runningstats

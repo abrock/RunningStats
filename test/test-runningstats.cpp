@@ -340,7 +340,7 @@ TEST(Histogram, all) {
             size_t counter = 0;
             for (auto & entry : hist) {
                 EXPECT_NEAR(double(counter)*bin_size, entry.first, 1e-16);
-                EXPECT_NEAR(.1, entry.second, 1e-16);
+                EXPECT_NEAR(1.0 / (bin_size*10), entry.second, 1e-16);
 
                 ++counter;
             }

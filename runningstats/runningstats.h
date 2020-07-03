@@ -398,6 +398,18 @@ private:
     QuantileStats<T> quantiles_2;
 };
 
+template<class T>
+class Image1D {
+    std::vector<T> pos;
+    std::vector<T> neg;
+
+    double const width;
+public:
+    Image1D(double const _width);
+
+    T& operator[](double index);
+};
+
 } // namespace runningstats
 
 #endif // RUNNINGSTATS_H

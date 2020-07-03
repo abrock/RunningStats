@@ -8,8 +8,13 @@
 
 find_package(GTest REQUIRED)
 
-foreach(executable test-runningstats test-2d test-knuth)
+foreach(executable test-2d test-knuth)
 add_executable(${executable} ${executable}.cpp)
+endforeach()
+
+add_executable(test-runningstats test-runningstats.cpp subtestimage.cpp subtestimage.h)
+
+foreach(executable test-runningstats test-2d test-knuth)
 target_link_libraries(${executable} ${LIBRARY_NAME})
 target_link_libraries(${executable} pthread ${GTEST_BOTH_LIBRARIES})
 endforeach()
