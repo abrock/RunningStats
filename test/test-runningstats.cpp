@@ -365,6 +365,9 @@ TEST(plot, QuantileStats_plotHist) {
     }
     h.plotHist("test-plot-quantile-hist", 0.1, false);
     h.plotCDF("test-plot-quantile-cdf");
+    HistConfig conf;
+    conf.setXLabel("random value").setYLabel("density").setTitle("Testing HistConf");
+    h.plotHist("test-plot-quantile-hist-conf", h.FreedmanDiaconisBinSize(), conf);
 }
 
 int main(int argc, char** argv) {

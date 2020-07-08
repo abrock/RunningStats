@@ -720,12 +720,12 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
 
     cmd << "set term svg enhanced background rgb \"white\";\n";
     cmd << "set output \"" << prefix + ".svg\"; \n";
-    cmd << "set title \"n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
+    cmd << conf.toString();
+    cmd << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
 
     auto const data = conf.absolute ? getAbsoluteHist() : getRelativeHist();
 
     cmd << "plot " << gpl.file1d(data, data_file) << " w boxes notitle; \n";
-    cmd << conf.toString();
     cmd << "set term tikz; \n";
     cmd << "set output \"" << prefix << ".tex\"; \n";
     cmd << "replot;\n";
