@@ -133,6 +133,7 @@ public:
 
     RunningStats();
     RunningStats(RunningStats const& rhs);
+    RunningStats & operator= ( const RunningStats & other);
 
     template<class StatsVec>
     static std::vector<double> getMean(const StatsVec& vec);

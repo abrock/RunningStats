@@ -30,6 +30,23 @@ RunningStats::RunningStats(const RunningStats &rhs) :
 
 }
 
+RunningStats &RunningStats::operator=(const RunningStats &other) {
+    sum = other.sum;
+    squaresum = other.squaresum;
+    min = other.min;
+    max = other.max;
+    n = other.n;
+    mean = other.mean;
+    varSum = other.varSum;
+    calcLog = other.calcLog;
+    log_sum = other.log_sum;
+    log_square_sum = other.log_square_sum;
+    log_min = other.log_min;
+    log_max = other.log_max;
+    log_n = other.log_n;
+    return *this;
+}
+
 void RunningStats::clear() {
     sum = 0;
     squaresum = 0;
