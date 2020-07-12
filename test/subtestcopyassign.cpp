@@ -31,5 +31,19 @@ TEST(RunningStats, copy) {
     EXPECT_EQ(3, copy2.getCount());
     EXPECT_EQ(1, src.getCount());
 
+    EXPECT_NEAR(1, src.getMean(), 1e-14);
+    EXPECT_NEAR(1, copy.getMean(), 1e-14);
+    EXPECT_NEAR(1, copy2.getMean(), 1e-14);
 
+    EXPECT_NEAR(0, src.getVar(), 1e-14);
+    EXPECT_NEAR(0, copy.getVar(), 1e-14);
+    EXPECT_NEAR(0, copy2.getVar(), 1e-14);
+
+    EXPECT_NEAR(0, src.getLogMean(), 1e-14);
+    EXPECT_NEAR(0, copy.getLogMean(), 1e-14);
+    EXPECT_NEAR(0, copy2.getLogMean(), 1e-14);
+
+    EXPECT_NEAR(0, src.getLogVar(), 1e-14);
+    EXPECT_NEAR(0, copy.getLogVar(), 1e-14);
+    EXPECT_NEAR(0, copy2.getLogVar(), 1e-14);
 }
