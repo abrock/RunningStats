@@ -930,15 +930,16 @@ Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double>
 
 template<class T>
 std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
+    double const ignore_amount = 50.0/100.0;
     double const freed_1 = quantiles_1.FreedmanDiaconisBinSize();
     double const freed_2 = quantiles_2.FreedmanDiaconisBinSize();
-    double const range_1 = quantiles_1.getMax() - quantiles_1.getMin();
-    double const range_2 = quantiles_2.getMax() - quantiles_2.getMin();
+    double const range_1 = quantiles_1.getQuantile(1.0 - ignore_amount/2) - quantiles_1.getQuantile(ignore_amount/2);
+    double const range_2 = quantiles_2.getQuantile(1.0 - ignore_amount/2) - quantiles_2.getQuantile(ignore_amount/2);
     double const num_bins_1 = range_1 / freed_1;
     double const num_bins_2 = range_2 / freed_2;
     double const num_bins = std::min(num_bins_1, num_bins_2);
     //double const num_bins_per_dim = std::sqrt(num_bins);
-    double const alpha = 1.0 / std::sqrt(double(num_bins)/(num_bins_1 * num_bins_2));
+    double const alpha = std::sqrt(double(num_bins_1 * num_bins_2)/double(num_bins));
     std::pair<double, double> result {
         (freed_1 * alpha),
                 (freed_2 * alpha)};
