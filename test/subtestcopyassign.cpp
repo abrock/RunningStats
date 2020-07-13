@@ -47,3 +47,23 @@ TEST(RunningStats, copy) {
     EXPECT_NEAR(0, copy.getLogVar(), 1e-14);
     EXPECT_NEAR(0, copy2.getLogVar(), 1e-14);
 }
+
+TEST(StatsN, copy) {
+    StatsN<float> src(2, {"a","b"}), copy(2, {"a","b"});
+    src.push_unsafe<float>({1,2});
+    copy = src;
+    EXPECT_EQ(1, copy.size());
+    EXPECT_EQ(1, src.size());
+    copy.push_unsafe<float>({1,2});
+    EXPECT_EQ(2, copy.size());
+    EXPECT_EQ(1, src.size());
+    StatsN<float> copy2(copy);
+    EXPECT_EQ(2, copy.size());
+    EXPECT_EQ(2, copy2.size());
+    EXPECT_EQ(1, src.size());
+    copy2.push_unsafe<float>({1,2});
+    EXPECT_EQ(2, copy.size());
+    EXPECT_EQ(3, copy2.size());
+    EXPECT_EQ(1, src.size());
+
+}

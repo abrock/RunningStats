@@ -887,6 +887,12 @@ void Histogram2D::plotHist(const std::string prefix, const double absolute) cons
 }
 
 template<class T>
+Stats2D<T>::Stats2D(const Stats2D<T>& other) : values(other.values), quantiles_1(other.quantiles_1), quantiles_2(other.quantiles_2) {}
+
+template<class T>
+Stats2D<T>::Stats2D() {}
+
+template<class T>
 bool Stats2D<T>::push(const double a, const double b) {
     if (!std::isfinite(a) || !std::isfinite(b)) {
         return false;
@@ -926,6 +932,16 @@ Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double>
         result.push_unsafe(d.first, d.second);
     }
     return result;
+}
+
+template<class T>
+void Stats2D<T>::reserve(const size_t size) {
+    values.reserve(size);
+}
+
+template<class T>
+void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, double> bin_size, const HistConfig &conf) const {
+    getHistogram2Dfixed(bin_size).plotHist(prefix, conf);
 }
 
 template<class T>
@@ -1162,5 +1178,97 @@ template class Image1D<RunningStats>;
 template class Image2D<double>;
 template class Image2D<size_t>;
 template class Image2D<RunningStats>;
+
+template<class T>
+StatsN<T>::StatsN(const size_t _N, const std::vector<std::string> _names) : N(_N), names(_names) {
+    if (_N != names.size()) {
+        throw std::runtime_error(std::string("description name list length (") + std::to_string(_names.size()) + ") doesn't match given size (" + std::to_string(_N) + ")");
+    }
+    if (_N < 2) {
+        throw std::runtime_error("Number of elements too small");
+    }
+}
+
+template<class T>
+StatsN<T>::StatsN(const StatsN<T> &other) : N(other.N), names(other.names), values(other.values) {}
+
+template<class T>
+StatsN<T> &StatsN<T>::operator =(const StatsN<T> &other) {
+    N = other.N;
+    names = other.names;
+    values = other.values;
+    return *this;
+}
+
+template<class T>
+Stats2D<T> StatsN<T>::getStats2D(size_t ii, size_t jj) const {
+    if (ii >= N) {
+        throw std::runtime_error(std::string("Requested ii (") + std::to_string(ii) + ") too large");
+    }
+    if (jj >= N) {
+        throw std::runtime_error(std::string("Requested jj (") + std::to_string(jj) + ") too large");
+    }
+    if (ii == jj) {
+        throw std::runtime_error(std::string("ii and jj are identical (") + std::to_string(ii) + ")");
+    }
+    Stats2D<T> result;
+    result.reserve(size());
+
+    for (std::vector<T> const& v : values) {
+        result.push_unsafe(v[ii], v[jj]);
+    }
+
+    return result;
+}
+
+template<class T>
+void StatsN<T>::plotAll(const std::string prefix, const HistConfig conf) const {
+    HistConfig c(conf);
+    for (size_t ii = 1; ii < N; ++ii) {
+        std::string const& x_label = names[ii];
+        c.setXLabel(x_label);
+        for (size_t jj = 0; jj < ii; ++jj) {
+            std::string const& y_label = names[jj];
+            c.setYLabel(y_label);
+            Stats2D<T> stats = getStats2D(ii, jj);
+            stats.plotHist(prefix + "-" + x_label + "-" + y_label, stats.FreedmanDiaconisBinSize(), c);
+        }
+    }
+}
+
+template<class T>
+size_t StatsN<T>::size() const {
+    return values.size();
+}
+
+template class StatsN<float>;
+
+template<class T>
+template<class U>
+bool StatsN<T>::push_unsafe(const std::vector<U> &val) {
+    if (N != val.size()) {
+        throw std::runtime_error(std::string("Size of given vector (") + std::to_string(val.size()) + ") doesn't match StatN object size (" + std::to_string(N) + ")");
+    }
+    for (const U v: val) {
+        if (!std::isfinite(v)) {
+            return false;
+        }
+    }
+    values.push_back(std::vector<T> (val.begin(), val.end()));
+    return true;
+}
+
+template bool StatsN<float>::push_unsafe(const std::vector<float> &val);
+template bool StatsN<float>::push_unsafe(const std::vector<double> &val);
+
+template<class T>
+template<class U>
+bool StatsN<T>::push(const std::vector<U> &val) {
+    std::lock_guard<std::mutex> guard(push_mutex);
+    return push_unsafe(val);
+}
+
+template bool StatsN<float>::push(const std::vector<float> &val);
+template bool StatsN<float>::push(const std::vector<double> &val);
 
 } // namespace runningstats

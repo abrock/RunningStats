@@ -370,6 +370,26 @@ TEST(plot, QuantileStats_plotHist) {
     h.plotHist("test-plot-quantile-hist-conf", h.FreedmanDiaconisBinSize(), conf);
 }
 
+TEST(std_vector, capacity) {
+    for (size_t ii = 0; ii < 20; ++ii) {
+        std::vector<size_t> vec;
+        vec.reserve(ii);
+        std::cout << "Reserved: " << ii << ", capacity: " << vec.capacity() << std::endl;
+    }
+    for (size_t ii = 0; ii < 20; ++ii) {
+        std::vector<size_t> vec;
+        for (size_t jj = 0; jj < ii; ++jj) {
+            vec.push_back(jj);
+        }
+        std::cout << "Pushed: " << ii << ", capacity: " << vec.capacity() << std::endl;
+    }
+    for (size_t ii = 0; ii < 20; ++ii) {
+        std::vector<size_t> vec(ii, 0);
+        std::vector<int> copy(vec.begin(), vec.end());
+        std::cout << "Initialized: " << ii << ", capacity: " << vec.capacity() << ", copy: " << copy.capacity() << std::endl;
+    }
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;

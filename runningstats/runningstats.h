@@ -369,6 +369,9 @@ class Stats2D {
 private:
     std::mutex push_mutex;
 public:
+    Stats2D(const Stats2D<T> &other);
+    Stats2D();
+
     bool push(const double a, const double b);
 
     bool push_unsafe(const double a, const double b);
@@ -387,7 +390,7 @@ public:
 
     void sort() const;
 
-    void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
+    void plotHist(std::string const prefix, std::pair<double, double> const bin_size, const HistConfig &conf) const;
 
     std::pair<double, double> FreedmanDiaconisBinSize();
 
@@ -397,6 +400,35 @@ private:
 
     QuantileStats<T> quantiles_1;
     QuantileStats<T> quantiles_2;
+};
+
+template<class T>
+class StatsN {
+private:
+    std::mutex push_mutex;
+
+    size_t N;
+    std::vector<std::string> names;
+
+    mutable std::vector<std::vector<T>> values;
+public:
+    StatsN(size_t const _N, std::vector<std::string> const _names);
+    StatsN(StatsN<T> const& other);
+    StatsN<T> & operator =(StatsN<T> const& other);
+
+    template<class U>
+    bool push(std::vector<U> const& val);
+
+    template<class U>
+    bool push_unsafe(std::vector<U> const& val);
+
+    Stats2D<T> getStats2D(size_t ii, size_t jj) const;
+
+    void plotAll(std::string const prefix, HistConfig const conf) const;
+
+    size_t size() const;
+
+    void reserve(const size_t size);
 };
 
 template<class T>
