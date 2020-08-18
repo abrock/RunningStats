@@ -1141,7 +1141,7 @@ template<class T>
 T &Image1D<T>::operator[](double index) {
     int64_t ind = std::round(index / width);
     if (ind >= 0) {
-        if (ind+2 > pos.size()) {
+        if (size_t(ind+2) > pos.size()) {
             pos.resize(ind+1);
         }
         return pos[ind];
@@ -1161,7 +1161,7 @@ template<class T>
 Image1D<T> &Image2D<T>::operator[](const double index) {
     int64_t ind = std::round(index / width1);
     if (ind >= 0) {
-        while (ind+2 > pos.size()) {
+        while (size_t(ind+2) > pos.size()) {
             pos.push_back(Image1D<T>(width2));
         }
         return pos[ind];
