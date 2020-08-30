@@ -374,9 +374,17 @@ void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size,
     h.plotHist(prefix, HistConfig().setAbsolute());
 }
 
+namespace  {
+size_t const max_pts_CDF_plot = 5000;
+}
+
 template<class T>
-void QuantileStats<T>::plotCDF(const std::string prefix) const {
+void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const {
     if (values.size() < 2) {
+        return;
+    }
+    if (values.size() > max_pts_CDF_plot) {
+        plotReducedCDF(prefix, conf);
         return;
     }
     sort();
@@ -385,9 +393,49 @@ void QuantileStats<T>::plotCDF(const std::string prefix) const {
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
     cmd << "set term svg enhanced background rgb \"white\";\n"
-        << "set output \"" << prefix + ".svg\"; \n";
+        << "set output \"" << prefix + ".svg\"; \n"
+        << conf.toString();
 
     cmd << "plot " << gpl.file(values, data_file) << " u 1:($0/" << (values.size()-1) << ") w l notitle; \n"
+        << "set term tikz; \n"
+        << "set output \"" << prefix << ".tex\"; \n"
+        << "replot;\n";
+
+    gpl << cmd.str();
+
+    std::ofstream out(prefix + ".gpl");
+    out << cmd.str();
+}
+
+template<class T>
+void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf) const {
+    if (values.size() < 2) {
+        return;
+    }
+    if (values.size() < max_pts_CDF_plot) {
+        plotCDF(prefix, conf);
+        return;
+    }
+    sort();
+    T current = min;
+    std::vector<std::pair<T, float> > plot_values;
+    plot_values.reserve(max_pts_CDF_plot);
+    for (size_t ii = 0; ii < values.size(); ++ii) {
+        if (values[ii] >= current) {
+            plot_values.push_back({values[ii], float(ii)/(values.size()-1)});
+            current = min + ((max-min) * plot_values.size()) / max_pts_CDF_plot;
+        }
+    }
+    plot_values.push_back({max, 1});
+
+    gnuplotio::Gnuplot gpl;
+    std::stringstream cmd;
+    std::string data_file = prefix + ".data";
+    cmd << "set term svg enhanced background rgb \"white\";\n"
+        << "set output \"" << prefix + ".svg\"; \n"
+        << conf.toString();
+
+    cmd << "plot " << gpl.file(plot_values, data_file) << " u 1:2 w l notitle; \n"
         << "set term tikz; \n"
         << "set output \"" << prefix << ".tex\"; \n"
         << "replot;\n";
@@ -402,6 +450,12 @@ template<class T>
 void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, const double absolute) const {
     plotHist(prefix + "-hist", bin_size, absolute);
     plotCDF(prefix + "-cdf");
+}
+
+template<class T>
+void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, HistConfig conf) const {
+    plotHist(prefix + "-hist", bin_size, conf);
+    plotCDF(prefix + "-cdf", conf);
 }
 
 template<class T>

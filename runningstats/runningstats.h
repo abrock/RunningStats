@@ -344,9 +344,20 @@ public:
     void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
     void plotHist(std::string const prefix, double const bin_size, HistConfig const conf) const;
 
-    void plotCDF(std::string const prefix) const;
+    void plotCDF(std::string const prefix, HistConfig conf = HistConfig()) const;
+
+    /**
+     * @brief plotReducedCDF plots a CDF (cumulative distribution function) which should look exactly
+     * like the one plotted by #plotCDF but doesn't use more than 5k points. This should be sufficient
+     * to print the resulting plot on a DIN A2 poster at 300 dpi without noticable difference to the plot by
+     * #plotCDF
+     * @param prefix
+     */
+    void plotReducedCDF(std::string const prefix, HistConfig conf = HistConfig()) const;
 
     void plotHistAndCDF(std::string const prefix, double const bin_size, double const absolute = true) const;
+
+    void plotHistAndCDF(std::string const prefix, double const bin_size, HistConfig conf) const;
 
     double FreedmanDiaconisBinSize();
 
