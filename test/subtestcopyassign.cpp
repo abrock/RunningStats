@@ -49,7 +49,7 @@ TEST(RunningStats, copy) {
 }
 
 TEST(StatsN, copy) {
-    StatsN<float> src(2, {"a","b"}), copy(2, {"a","b"});
+    StatsN<float> src({"a","b"}), copy({"a","b"});
     src.push_unsafe<float>({1,2});
     copy = src;
     EXPECT_EQ(1, copy.size());

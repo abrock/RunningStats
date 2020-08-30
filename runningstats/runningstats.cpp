@@ -768,7 +768,7 @@ size_t Histogram::getBinCount(const double value) const {
 
 double Histogram::getLikelihood() const {
     double result = 1;
-    for (std::pair<int64_t, size_t> const& it : data) {
+    for (std::pair<const int64_t, size_t> const& it : data) {
         double const pi_k = double(it.second) / double(n);
         double const p_k = pi_k / bin_size;
         result *= p_k;
@@ -1180,32 +1180,33 @@ template class Image2D<size_t>;
 template class Image2D<RunningStats>;
 
 template<class T>
-StatsN<T>::StatsN(const size_t _N, const std::vector<std::string> _names) : N(_N), names(_names) {
-    if (_N != names.size()) {
-        throw std::runtime_error(std::string("description name list length (") + std::to_string(_names.size()) + ") doesn't match given size (" + std::to_string(_N) + ")");
-    }
-    if (_N < 2) {
+StatsN<T>::StatsN(const std::vector<std::string> _names) : names(_names) {
+    if (names.size() < 2) {
         throw std::runtime_error("Number of elements too small");
     }
 }
 
 template<class T>
-StatsN<T>::StatsN(const StatsN<T> &other) : N(other.N), names(other.names), values(other.values) {}
+StatsN<T>::StatsN(const StatsN<T> &other) : names(other.names), values(other.values) {}
 
 template<class T>
 StatsN<T> &StatsN<T>::operator =(const StatsN<T> &other) {
-    N = other.N;
     names = other.names;
     values = other.values;
     return *this;
 }
 
 template<class T>
+size_t StatsN<T>::dim() const {
+    return names.size();
+}
+
+template<class T>
 Stats2D<T> StatsN<T>::getStats2D(size_t ii, size_t jj) const {
-    if (ii >= N) {
+    if (ii >= dim()) {
         throw std::runtime_error(std::string("Requested ii (") + std::to_string(ii) + ") too large");
     }
-    if (jj >= N) {
+    if (jj >= dim()) {
         throw std::runtime_error(std::string("Requested jj (") + std::to_string(jj) + ") too large");
     }
     if (ii == jj) {
@@ -1224,7 +1225,7 @@ Stats2D<T> StatsN<T>::getStats2D(size_t ii, size_t jj) const {
 template<class T>
 void StatsN<T>::plotAll(const std::string prefix, const HistConfig conf) const {
     HistConfig c(conf);
-    for (size_t ii = 1; ii < N; ++ii) {
+    for (size_t ii = 1; ii < dim(); ++ii) {
         std::string const& x_label = names[ii];
         c.setXLabel(x_label);
         for (size_t jj = 0; jj < ii; ++jj) {
@@ -1246,8 +1247,8 @@ template class StatsN<float>;
 template<class T>
 template<class U>
 bool StatsN<T>::push_unsafe(const std::vector<U> &val) {
-    if (N != val.size()) {
-        throw std::runtime_error(std::string("Size of given vector (") + std::to_string(val.size()) + ") doesn't match StatN object size (" + std::to_string(N) + ")");
+    if (dim() != val.size()) {
+        throw std::runtime_error(std::string("Size of given vector (") + std::to_string(val.size()) + ") doesn't match StatN object size (" + std::to_string(dim()) + ")");
     }
     for (const U v: val) {
         if (!std::isfinite(v)) {

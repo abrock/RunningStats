@@ -407,14 +407,15 @@ class StatsN {
 private:
     std::mutex push_mutex;
 
-    size_t N;
     std::vector<std::string> names;
 
     mutable std::vector<std::vector<T>> values;
 public:
-    StatsN(size_t const _N, std::vector<std::string> const _names);
+    StatsN(std::vector<std::string> const _names);
     StatsN(StatsN<T> const& other);
     StatsN<T> & operator =(StatsN<T> const& other);
+
+    size_t dim() const;
 
     template<class U>
     bool push(std::vector<U> const& val);
