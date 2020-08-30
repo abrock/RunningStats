@@ -386,6 +386,36 @@ TEST(plot, QuantileStats_plotHist) {
     h.plotHist("test-plot-quantile-hist-conf-1M", h.FreedmanDiaconisBinSize(), conf);
 }
 
+TEST(plot, QuantileStats_plotHist_range) {
+    runningstats::QuantileStats<double> h;
+    std::normal_distribution<double> dist;
+    for (size_t ii = 0; ii < 5000; ++ii) {
+        h.push(dist(rng));
+    }
+    h.plotHist("test-plot-quantile-minmax-hist", 0.1, false);
+    h.plotCDF("test-plot-quantile-minmax-cdf");
+    HistConfig conf;
+    conf.setIgnoreAmount(.1);
+    conf.setXLabel("random value").setYLabel("density").setTitle("Testing HistConf");
+    h.plotHist("test-plot-quantile-minmax-hist-conf", h.FreedmanDiaconisBinSize(), conf);
+
+    for (size_t ii = 0; ii < 95*1000; ++ii) {
+        h.push(dist(rng));
+    }
+    h.plotHist("test-plot-quantile-minmax-hist-100k", h.FreedmanDiaconisBinSize(), false);
+    h.plotCDF("test-plot-quantile-minmax-cdf-100k", conf);
+    conf.setXLabel("random value").setYLabel("density").setTitle("Testing HistConf");
+    h.plotHist("test-plot-quantile-minmax-hist-conf-100k", h.FreedmanDiaconisBinSize(), conf);
+
+    for (size_t ii = 0; ii < 900*1000; ++ii) {
+        h.push(dist(rng));
+    }
+    h.plotHist("test-plot-quantile-minmax-hist-1M", h.FreedmanDiaconisBinSize(), false);
+    h.plotCDF("test-plot-quantile-minmax-cdf-1M", conf);
+    conf.setXLabel("random value").setYLabel("density").setTitle("Testing HistConf");
+    h.plotHist("test-plot-quantile-minmax-hist-conf-1M", h.FreedmanDiaconisBinSize(), conf);
+}
+
 TEST(std_vector, capacity) {
     for (size_t ii = 0; ii < 20; ++ii) {
         std::vector<size_t> vec;

@@ -337,6 +337,27 @@ double QuantileStats<T>::getMax(const std::vector<T> &values) {
 }
 
 template<class T>
+std::string QuantileStats<T>::getXrange(const HistConfig &conf) const {
+    double _min = std::max(min, conf.min_x);
+    double _max = std::min(max, conf.max_x);
+
+    if (conf.ignore_amount > 0) {
+        _min = std::max(_min, double(getQuantile(conf.ignore_amount/2)));
+        _max = std::min(_max, double(getQuantile(1.0 - conf.ignore_amount/2)));
+    }
+
+    return std::string("set xrange[") + std::to_string(_min) + ":" + std::to_string(_max) + "];\n";
+}
+
+template<class T>
+void QuantileStats<T>::setRangeByIgnoreAmount(HistConfig &conf) const {
+    if (conf.ignore_amount > 0) {
+        conf.min_x = std::max(conf.min_x, double(getQuantile(conf.ignore_amount/2)));
+        conf.max_x = std::min(conf.max_x, double(getQuantile(1.0 - conf.ignore_amount/2)));
+    }
+}
+
+template<class T>
 T QuantileStats<T>::getInverseQuantile(const double value) const {
     if (value <= min) {
         return 0;
@@ -361,9 +382,10 @@ void QuantileStats<T>::sort() const {
 }
 
 template<class T>
-void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const HistConfig conf) const {
+void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, HistConfig conf) const {
     Histogram h(bin_size);
     h.push_vector_unsafe(values);
+    setRangeByIgnoreAmount(conf);
     h.plotHist(prefix, conf);
 }
 
@@ -395,6 +417,8 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     cmd << "set term svg enhanced background rgb \"white\";\n"
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString();
+
+    cmd << getXrange(conf);
 
     cmd << "plot " << gpl.file(values, data_file) << " u 1:($0/" << (values.size()-1) << ") w l notitle; \n"
         << "set term tikz; \n"
@@ -434,6 +458,8 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     cmd << "set term svg enhanced background rgb \"white\";\n"
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString();
+
+    cmd << getXrange(conf);
 
     cmd << "plot " << gpl.file(plot_values, data_file) << " u 1:2 w l notitle; \n"
         << "set term tikz; \n"
@@ -794,6 +820,8 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     cmd << conf.toString();
     cmd << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
 
+    cmd << getXrange(conf);
+
     auto const data = conf.absolute ? getAbsoluteHist() : getRelativeHist();
 
     cmd << "plot " << gpl.file1d(data, data_file) << " w boxes notitle; \n";
@@ -850,6 +878,12 @@ double Histogram::getPosteriorProbability() const {
         }
     }
     return result;
+}
+
+std::string Histogram::getXrange(const HistConfig &conf) const {
+    double _min = std::max(min, conf.min_x);
+    double _max = std::min(max, conf.max_x);
+    return std::string("set xrange[") + std::to_string(_min) + ":" + std::to_string(_max) + "];\n";
 }
 
 template<class T>
@@ -977,13 +1011,28 @@ Histogram2D Stats2D<T>::getHistogram2D(const std::pair<double, double> bin_sizes
 }
 
 template<class T>
-Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double> bin_sizes) const {
+Histogram2Dfixed Stats2D<T>::getHistogram2Dfixed(const std::pair<double, double> bin_sizes, HistConfig conf) const {
+    double _min_x = std::max(conf.min_x, quantiles_1.getMin());
+    double _max_x = std::min(conf.max_x, quantiles_1.getMax());
+    double _min_y = std::max(conf.min_y, quantiles_2.getMin());
+    double _max_y = std::min(conf.max_y, quantiles_2.getMax());
+
+    if (conf.ignore_amount > 0) {
+        _min_x = std::max(_min_x, double(quantiles_1.getQuantile(conf.ignore_amount/2)));
+        _max_x = std::min(_max_x, double(quantiles_1.getQuantile(1.0 - conf.ignore_amount/2)));
+        _min_y = std::max(_min_y, double(quantiles_2.getQuantile(conf.ignore_amount/2)));
+        _max_y = std::min(_max_y, double(quantiles_2.getQuantile(1.0 - conf.ignore_amount/2)));
+    }
     Histogram2Dfixed result(
                 bin_sizes.first, bin_sizes.second,
-                quantiles_1.getMin(), quantiles_2.getMin(),
-                quantiles_1.getMax(), quantiles_2.getMax());
+                _min_x, _min_y,
+                _max_x, _max_y);
+    size_t num_ignore = 0;
     for (std::pair<T, T> const& d : values) {
-        result.push_unsafe(d.first, d.second);
+        bool const success = result.push_unsafe(d.first, d.second);
+        if (!success) {
+            num_ignore++;
+        }
     }
     return result;
 }
@@ -995,7 +1044,7 @@ void Stats2D<T>::reserve(const size_t size) {
 
 template<class T>
 void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, double> bin_size, const HistConfig &conf) const {
-    getHistogram2Dfixed(bin_size).plotHist(prefix, conf);
+    getHistogram2Dfixed(bin_size, conf).plotHist(prefix, conf);
 }
 
 template<class T>
@@ -1125,6 +1174,20 @@ void Histogram2Dfixed::plotHist(const std::string prefix, const bool absolute) c
     plotHist(prefix, conf);
 }
 
+void HistConfig::setMinMaxX(const double min, const double max) {
+    min_x = min;
+    max_x = max;
+}
+
+void HistConfig::setMinMaxY(const double min, const double max) {
+    min_y = min;
+    max_y = max;
+}
+
+void HistConfig::setIgnoreAmount(const double val) {
+    ignore_amount = std::min(1.0, std::max(0.0, val));
+}
+
 std::string HistConfig::toString() const {
     std::stringstream out;
     if (logCB) {
@@ -1186,6 +1249,10 @@ HistConfig &HistConfig::setXLabel(const std::string val) {
 HistConfig &HistConfig::setYLabel(const std::string val) {
     yLabel = val;
     return *this;
+}
+
+HistConfig HistConfig::clone() const {
+    return HistConfig(*this);
 }
 
 template<class T>

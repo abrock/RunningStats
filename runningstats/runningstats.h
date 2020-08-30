@@ -35,6 +35,19 @@ public:
      */
     bool absolute = false;
 
+    double min_x = -std::numeric_limits<double>::max();
+    double max_x = std::numeric_limits<double>::max();
+
+    double min_y = -std::numeric_limits<double>::max();
+    double max_y = std::numeric_limits<double>::max();
+
+    void setMinMaxX(double const min, double const max);
+    void setMinMaxY(double const min, double const max);
+
+    double ignore_amount = 0;
+
+    void setIgnoreAmount(double const val);
+
     std::string title;
 
     std::string xLabel;
@@ -52,6 +65,8 @@ public:
     HistConfig& setTitle(std::string const val);
     HistConfig& setXLabel(std::string const val);
     HistConfig& setYLabel(std::string const val);
+
+    HistConfig clone() const;
 };
 
 /**
@@ -245,6 +260,8 @@ public:
 
     double getLikelihood() const;
     double getPosteriorProbability() const;
+
+    std::string getXrange(HistConfig const& conf) const;
 };
 
 class Histogram2D {
@@ -342,7 +359,7 @@ public:
     void sort() const;
 
     void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
-    void plotHist(std::string const prefix, double const bin_size, HistConfig const conf) const;
+    void plotHist(std::string const prefix, double const bin_size, HistConfig conf) const;
 
     void plotCDF(std::string const prefix, HistConfig conf = HistConfig()) const;
 
@@ -365,6 +382,10 @@ public:
 
     static double getMin(const std::vector<T> &values);
     static double getMax(const std::vector<T> &values);
+
+    std::string getXrange(HistConfig const& conf) const;
+
+    void setRangeByIgnoreAmount(HistConfig & conf) const;
 
     using RunningStats::getMin;
     using RunningStats::getMax;
@@ -389,7 +410,7 @@ public:
 
     Histogram2D getHistogram2D(std::pair<double, double> const bin_sizes) const;
 
-    Histogram2Dfixed getHistogram2Dfixed(std::pair<double, double> const bin_sizes) const;
+    Histogram2Dfixed getHistogram2Dfixed(std::pair<double, double> const bin_sizes, HistConfig conf = HistConfig()) const;
 
     std::pair<double, double> getMedian() const;
 
