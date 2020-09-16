@@ -416,6 +416,16 @@ TEST(plot, QuantileStats_plotHist_range) {
     h.plotHist("test-plot-quantile-minmax-hist-conf-1M", h.FreedmanDiaconisBinSize(), conf);
 }
 
+TEST(plot, QuantileStats_plotHistAndCDF) {
+    runningstats::QuantileStats<double> h;
+    std::normal_distribution<double> dist;
+
+    for (size_t ii = 0; ii < 1000*1000; ++ii) {
+        h.push(dist(rng));
+    }
+    h.plotHistAndCDF("test-plot-hist-and-cdf-1M", h.FreedmanDiaconisBinSize(), HistConfig().setDataLabel("N(0,1)"));
+}
+
 TEST(std_vector, capacity) {
     for (size_t ii = 0; ii < 20; ++ii) {
         std::vector<size_t> vec;

@@ -93,6 +93,16 @@ TEST(Plot2D, Stats2Dfixed_degenerate) {
 
 }
 
+TEST(Stats2D, merge) {
+    Stats2D<float> a, b, c;
+    for (size_t ii = 0; ii < 10; ++ii) {
+        a.push_unsafe(0,1);
+        b.push_unsafe(1,0);
+    }
+    c.push(a);
+
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;

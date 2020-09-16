@@ -41,9 +41,6 @@ public:
     double min_y = -std::numeric_limits<double>::max();
     double max_y = std::numeric_limits<double>::max();
 
-    void setMinMaxX(double const min, double const max);
-    void setMinMaxY(double const min, double const max);
-
     double ignore_amount = 0;
 
     void setIgnoreAmount(double const val);
@@ -54,7 +51,14 @@ public:
 
     std::string yLabel;
 
+    std::string dataLabel;
+
     std::string toString() const;
+
+    std::string misc;
+
+    HistConfig& setMinMaxX(double const min, double const max);
+    HistConfig& setMinMaxY(double const min, double const max);
 
     HistConfig& setLogX(bool const val = true);
     HistConfig& setLogY(bool const val = true);
@@ -65,6 +69,10 @@ public:
     HistConfig& setTitle(std::string const val);
     HistConfig& setXLabel(std::string const val);
     HistConfig& setYLabel(std::string const val);
+    HistConfig& setDataLabel(std::string const val);
+
+    HistConfig &addHorizontalLine(double const y, std::string const color = "#ffffff");
+    HistConfig &addVerticalLine(double const x, std::string const color = "#ffffff");
 
     HistConfig clone() const;
 };
@@ -405,8 +413,16 @@ public:
     Stats2D();
 
     bool push(const double a, const double b);
+    bool push(const std::pair<double, double> val);
+    bool push(const std::vector<std::pair<double, double> >& vec);
+    template<class U>
+    bool push(const Stats2D<U> & other);
 
     bool push_unsafe(const double a, const double b);
+    bool push_unsafe(const std::pair<double, double> val);
+    bool push_unsafe(const std::vector<std::pair<double, double> >& vec);
+    template<class U>
+    bool push_unsafe(const Stats2D<U> & other);
 
     Histogram2D getHistogram2D(std::pair<double, double> const bin_sizes) const;
 
@@ -416,7 +432,7 @@ public:
 
     void reserve(const size_t size);
 
-    std::vector<std::pair<T, T> > getData();
+    std::vector<std::pair<T, T> > getData() const;
 
     double getTrimmedMean(const T & ignore);
 
@@ -426,6 +442,14 @@ public:
 
     std::pair<double, double> FreedmanDiaconisBinSize();
 
+    size_t size() const;
+
+    bool empty() const;
+
+    QuantileStats<T> get1() const;
+    QuantileStats<T> get2() const;
+
+    QuantileStats<T> get(const std::string name) const;
 private:
 
     mutable std::vector<std::pair<T, T>> values;

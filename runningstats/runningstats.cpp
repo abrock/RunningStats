@@ -418,6 +418,12 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString();
 
+    if (!conf.dataLabel.empty()) {
+        cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
+    }
+    cmd << "set ylabel \"Estimated CDF\";\n";
+
+
     cmd << getXrange(conf);
 
     cmd << "plot " << gpl.file(values, data_file) << " u 1:($0/" << (values.size()-1) << ") w l notitle; \n"
@@ -458,6 +464,11 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     cmd << "set term svg enhanced background rgb \"white\";\n"
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString();
+
+    if (!conf.dataLabel.empty()) {
+        cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
+    }
+    cmd << "set ylabel \"Estimated CDF\";\n";
 
     cmd << getXrange(conf);
 
@@ -819,6 +830,10 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     cmd << "set output \"" << prefix + ".svg\"; \n";
     cmd << conf.toString();
     cmd << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
+    if (!conf.dataLabel.empty()) {
+        cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
+    }
+    cmd << "set ylabel \"Estimated PDF\";\n";
 
     cmd << getXrange(conf);
 
@@ -991,6 +1006,17 @@ bool Stats2D<T>::push(const double a, const double b) {
 }
 
 template<class T>
+bool Stats2D<T>::push(const std::pair<double, double> val) {
+    return push(val.first, val.second);
+}
+
+template<class T>
+bool Stats2D<T>::push(const std::vector<std::pair<double, double> > &vec) {
+    std::lock_guard<std::mutex> guard(push_mutex);
+    return push_unsafe(vec);
+}
+
+template<class T>
 bool Stats2D<T>::push_unsafe(const double a, const double b) {
     if (!std::isfinite(a) || !std::isfinite(b)) {
         return false;
@@ -999,6 +1025,20 @@ bool Stats2D<T>::push_unsafe(const double a, const double b) {
     quantiles_1.push_unsafe(a);
     quantiles_2.push_unsafe(b);
     return true;
+}
+
+template<class T>
+bool Stats2D<T>::push_unsafe(const std::pair<double, double> val) {
+    return push_unsafe(val.first, val.second);
+}
+
+template<class T>
+bool Stats2D<T>::push_unsafe(const std::vector<std::pair<double, double> > &vec) {
+    bool success = true;
+    for (const std::pair<double, double>& val : vec) {
+        success &= push_unsafe(val.first, val.second);
+    }
+    return success;
 }
 
 template<class T>
@@ -1043,6 +1083,11 @@ void Stats2D<T>::reserve(const size_t size) {
 }
 
 template<class T>
+std::vector<std::pair<T, T> > Stats2D<T>::getData() const {
+    return values;
+}
+
+template<class T>
 void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, double> bin_size, const HistConfig &conf) const {
     getHistogram2Dfixed(bin_size, conf).plotHist(prefix, conf);
 }
@@ -1070,6 +1115,37 @@ std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
         (range_2/(num_bins_per_dim * bin_factor))};
         */
     return result;
+}
+
+template<class T>
+size_t Stats2D<T>::size() const {
+    return values.size();
+}
+
+template<class T>
+bool Stats2D<T>::empty() const {
+    return values.empty();
+}
+
+template<class T>
+QuantileStats<T> Stats2D<T>::get1() const {
+    return quantiles_1;
+}
+
+template<class T>
+QuantileStats<T> Stats2D<T>::get2() const {
+    return quantiles_2;
+}
+
+template<class T>
+QuantileStats<T> Stats2D<T>::get(std::string const name) const {
+    if (std::string("x") == name || std::string("1") == name) {
+        return quantiles_1;
+    }
+    if (std::string("y") == name || std::string("2") == name) {
+        return quantiles_2;
+    }
+    throw std::runtime_error("Please specify x, y, 1 or 2 in Stats2D<T>::get(std::string const name)");
 }
 
 template class Stats2D<float>;
@@ -1174,14 +1250,16 @@ void Histogram2Dfixed::plotHist(const std::string prefix, const bool absolute) c
     plotHist(prefix, conf);
 }
 
-void HistConfig::setMinMaxX(const double min, const double max) {
+HistConfig &HistConfig::setMinMaxX(const double min, const double max) {
     min_x = min;
     max_x = max;
+    return *this;
 }
 
-void HistConfig::setMinMaxY(const double min, const double max) {
+HistConfig &HistConfig::setMinMaxY(const double min, const double max) {
     min_y = min;
     max_y = max;
+    return *this;
 }
 
 void HistConfig::setIgnoreAmount(const double val) {
@@ -1208,6 +1286,7 @@ std::string HistConfig::toString() const {
     if (!title.empty()) {
         out << "set title '" << title << "';\n";
     }
+    out << misc;
     return out.str();
 }
 
@@ -1250,6 +1329,22 @@ HistConfig &HistConfig::setYLabel(const std::string val) {
     yLabel = val;
     return *this;
 }
+
+HistConfig &HistConfig::setDataLabel(const std::string val) {
+    dataLabel = val;
+    return *this;
+}
+
+HistConfig &HistConfig::addHorizontalLine(const double y, const std::string color) {
+    misc += std::string("set arrow from graph 0, first ") + std::to_string(y) + " to graph 1, first " + std::to_string(y) + " nohead lc rgb \"" + color + "\" front;\n";
+    return *this;
+}
+
+HistConfig &HistConfig::addVerticalLine(const double x, const std::string color) {
+    misc += std::string("set arrow from ") + std::to_string(x) + ", graph 0 to " + std::to_string(x) + ", graph 1 nohead lc rgb \"" + color + "\" front;\n";
+    return *this;
+}
+
 
 HistConfig HistConfig::clone() const {
     return HistConfig(*this);
@@ -1392,5 +1487,32 @@ bool StatsN<T>::push(const std::vector<U> &val) {
 
 template bool StatsN<float>::push(const std::vector<float> &val);
 template bool StatsN<float>::push(const std::vector<double> &val);
+
+template<class T>
+template<class U>
+bool Stats2D<T>::push_unsafe(const Stats2D<U> &other) {
+    bool success = true;
+    for (auto const& val : other.getData()) {
+        success &= push_unsafe(val.first, val.second);
+    }
+    return success;
+}
+
+template<class T>
+template<class U>
+bool Stats2D<T>::push(const Stats2D<U> &other) {
+    std::lock_guard<std::mutex> guard(push_mutex);
+    return push_unsafe(other);
+}
+
+template bool Stats2D<float>::push_unsafe(const Stats2D<float> & other);
+template bool Stats2D<float>::push_unsafe(const Stats2D<double> & other);
+template bool Stats2D<double>::push_unsafe(const Stats2D<float> & other);
+template bool Stats2D<double>::push_unsafe(const Stats2D<double> & other);
+
+template bool Stats2D<float>::push(const Stats2D<float> & other);
+template bool Stats2D<float>::push(const Stats2D<double> & other);
+template bool Stats2D<double>::push(const Stats2D<float> & other);
+template bool Stats2D<double>::push(const Stats2D<double> & other);
 
 } // namespace runningstats
