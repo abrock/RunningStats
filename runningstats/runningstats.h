@@ -35,6 +35,11 @@ public:
      */
     bool absolute = false;
 
+    /**
+     * @brief Set fixedRatio to true to make Gnuplot plot both axes at the same scale.
+     */
+    bool fixedRatio = false;
+
     double min_x = -std::numeric_limits<double>::max();
     double max_x = std::numeric_limits<double>::max();
 
@@ -65,6 +70,7 @@ public:
     HistConfig& setLogCB(bool const val = true);
     HistConfig& setAbsolute(bool const val = true);
     HistConfig& setRelative(bool const val = true);
+    HistConfig& setFixedRatio(bool const val = true);
 
     HistConfig& setTitle(std::string const val);
     HistConfig& setXLabel(std::string const val);

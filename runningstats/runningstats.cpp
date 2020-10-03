@@ -1345,6 +1345,9 @@ std::string HistConfig::toString() const {
     if (!title.empty()) {
         out << "set title '" << title << "';\n";
     }
+    if (fixedRatio) {
+        out << "set size ratio -1;\n";
+    }
     out << misc;
     return out.str();
 }
@@ -1371,6 +1374,11 @@ HistConfig &HistConfig::setAbsolute(const bool val) {
 
 HistConfig &HistConfig::setRelative(bool const val) {
     absolute = !val;
+    return *this;
+}
+
+HistConfig &HistConfig::setFixedRatio(const bool val) {
+    fixedRatio = val;
     return *this;
 }
 
