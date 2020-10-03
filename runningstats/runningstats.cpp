@@ -1192,6 +1192,21 @@ QuantileStats<T> Stats2D<T>::get(std::string const name) const {
     throw std::runtime_error("Please specify x, y, 1 or 2 in Stats2D<T>::get(std::string const name)");
 }
 
+template<class T>
+std::tuple<double, double, double, double> Stats2D<T>::getQuantileEllipse(const double ignore) const {
+    return {
+        quantiles_1.getMedian(),
+                quantiles_2.getMedian(),
+                quantiles_1.getQuantile(1.0 - ignore/2) - quantiles_1.getQuantile(ignore/2),
+                quantiles_2.getQuantile(1.0 - ignore/2) - quantiles_2.getQuantile(ignore/2)
+    };
+}
+
+template<class T>
+void Stats2D<T>::getQuantileEllipse(Ellipses &ellipse, const double ignore) const {
+    ellipse.push(getQuantileEllipse(ignore));
+}
+
 template class Stats2D<float>;
 template class Stats2D<double>;
 
@@ -1558,5 +1573,45 @@ template bool Stats2D<float>::push(const Stats2D<float> & other);
 template bool Stats2D<float>::push(const Stats2D<double> & other);
 template bool Stats2D<double>::push(const Stats2D<float> & other);
 template bool Stats2D<double>::push(const Stats2D<double> & other);
+
+void Ellipses::push_unsafe(const std::tuple<double, double, double, double> &val) {
+    data.push_back(val);
+
+    limits_x.push_unsafe(std::get<0>(val) + std::get<2>(val)/2);
+    limits_x.push_unsafe(std::get<0>(val) - std::get<2>(val)/2);
+
+    limits_y.push_unsafe(std::get<1>(val) + std::get<3>(val)/2);
+    limits_y.push_unsafe(std::get<1>(val) - std::get<3>(val)/2);
+}
+
+void Ellipses::push(const std::tuple<double, double, double, double> &val) {
+    std::lock_guard<std::mutex> guard(push_mutex);
+    push_unsafe(val);
+}
+
+void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
+    gnuplotio::Gnuplot gpl;
+    std::stringstream cmd;
+    std::string data_file = prefix + ".data";
+    double const size_x = limits_x.getMax() - limits_x.getMin();
+    double const size_y = limits_y.getMax() - limits_y.getMin();
+    double const margin = 0.04;
+    cmd << "set term svg enhanced background rgb \"white\";\n"
+        << "set output \"" << prefix + ".svg\"; \n"
+        << conf.toString() << ";\n"
+        << "set xrange [" << limits_x.getMin() - margin * size_x << ":" << limits_x.getMax() + margin * size_x << "];\n"
+        << "set yrange [" << limits_y.getMin() - margin * size_y << ":" << limits_y.getMax() + margin * size_y << "];\n"
+           ;
+
+    cmd << "plot " << gpl.file(data, data_file) << " with ellipses notitle; \n"
+        << "set term tikz; \n"
+        << "set output \"" << prefix << ".tex\"; \n"
+        << "replot;\n";
+
+    gpl << cmd.str();
+
+    std::ofstream out(prefix + ".gpl");
+    out << cmd.str();
+}
 
 } // namespace runningstats

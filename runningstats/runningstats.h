@@ -398,10 +398,34 @@ public:
     using RunningStats::getMin;
     using RunningStats::getMax;
 
+    void saveSummary(std::string const & filename);
+
+    std::string getSummary();
+
+    void getSummary(std::ostream& out);
+
 private:
 
     mutable std::vector<T> values;
     mutable bool sorted = true;
+};
+
+/**
+ * @brief The Ellipses class stores ellipses defined by center point and x/y diameters. It plots them.
+ */
+class Ellipses {
+private:
+    std::vector<std::tuple<double, double, double, double> > data;
+
+    RunningStats limits_x;
+    RunningStats limits_y;
+
+    std::mutex push_mutex;
+public:
+    void push_unsafe(std::tuple<double, double, double, double> const& val);
+    void push(std::tuple<double, double, double, double> const& val);
+
+    void plot(const std::string &prefix, HistConfig const& conf);
 };
 
 template<class T>
@@ -456,6 +480,9 @@ public:
     QuantileStats<T> get2() const;
 
     QuantileStats<T> get(const std::string name) const;
+
+    std::tuple<double, double, double, double> getQuantileEllipse(double const ignore) const;
+    void getQuantileEllipse(Ellipses& ellipse, double const ignore) const;
 private:
 
     mutable std::vector<std::pair<T, T>> values;

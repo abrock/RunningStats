@@ -446,6 +446,35 @@ TEST(std_vector, capacity) {
     }
 }
 
+TEST(Ellipses, Stats2D_eillpises) {
+    runningstats::Ellipses ellipses;
+    std::normal_distribution<double> dist;
+
+    for (size_t ii = 0; ii < 20; ++ii) {
+        runningstats::Stats2D<double> stats;
+        for (size_t jj = 0; jj < 1000; ++jj) {
+            stats.push_unsafe(dist(rng), dist(rng));
+        }
+        stats.getQuantileEllipse(ellipses, 0.5);
+    }
+    ellipses.plot("ellipses-stats2d", HistConfig()
+                  .setTitle("50% ellipses of 1k normal distributions")
+                  .setXLabel("X label")
+                  .setYLabel("Y label")
+                  .setFixedRatio());
+}
+
+TEST(Ellipses, plot) {
+    runningstats::Ellipses ellipses;
+    for (size_t xx = 1; xx < 10; ++xx) {
+        ellipses.push({xx, 0, 2*xx, 10});
+    }
+    ellipses.plot("ellipses", HistConfig()
+                  .setTitle("Ellipses")
+                  .setXLabel("X label")
+                  .setYLabel("Y label"));
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;
