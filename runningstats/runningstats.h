@@ -440,6 +440,12 @@ public:
 
     void plotHist(std::string const prefix, std::pair<double, double> const bin_size, const HistConfig &conf) const;
 
+    void saveSummary(std::string const & filename);
+
+    std::string getSummary();
+
+    void getSummary(std::ostream& out);
+
     std::pair<double, double> FreedmanDiaconisBinSize();
 
     size_t size() const;

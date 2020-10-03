@@ -358,6 +358,29 @@ void QuantileStats<T>::setRangeByIgnoreAmount(HistConfig &conf) const {
 }
 
 template<class T>
+void QuantileStats<T>::saveSummary(const std::string &filename) {
+    std::ofstream out(filename);
+    getSummary(out);
+}
+
+template<class T>
+std::string QuantileStats<T>::getSummary() {
+    std::stringstream out;
+    getSummary(out);
+    return out.str();
+}
+
+template<class T>
+void QuantileStats<T>::getSummary(std::ostream &out) {
+    out << "Quantiles 1%, 5%, 10%, 15%, 25%, 50%, 75%, 85%, 90%, 95%, 99%:\n";
+    for (double q : {0.01, 0.05, 0.1, 0.15, 0.25, 0.5, 0.75, 0.85, 0.9, 0.95, 0.99}) {
+        out << getQuantile(q) << "\t";
+    }
+    out << "\n" << "Median, IQR:\n" << getQuantile(0.5) << " [ " << getQuantile(0.25) << " " << getQuantile(0.75) << "\n"
+        << "Mean, stddev: " << getMean() << "\t" << getStddev() << std::endl;
+}
+
+template<class T>
 T QuantileStats<T>::getInverseQuantile(const double value) const {
     if (value <= min) {
         return 0;
@@ -1090,6 +1113,27 @@ std::vector<std::pair<T, T> > Stats2D<T>::getData() const {
 template<class T>
 void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, double> bin_size, const HistConfig &conf) const {
     getHistogram2Dfixed(bin_size, conf).plotHist(prefix, conf);
+}
+
+template<class T>
+void Stats2D<T>::saveSummary(const std::string &filename) {
+    std::ofstream out(filename);
+    getSummary(out);
+}
+
+template<class T>
+std::string Stats2D<T>::getSummary() {
+    std::stringstream out;
+    getSummary(out);
+    return out.str();
+}
+
+template<class T>
+void Stats2D<T>::getSummary(std::ostream &out) {
+    out << "x:\n";
+    quantiles_1.getSummary(out);
+    out << "\ny:\n";
+    quantiles_2.getSummary(out);
 }
 
 template<class T>
