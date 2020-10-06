@@ -277,7 +277,7 @@ TEST(RunningStats, Correlation) {
     }
 
     {
-        long int const limit = 1000*1000;
+        int64_t const limit = 1000*1000;
         RunningCovariance cov;
         RunningStats stats1, stats2;
         for (long int ii = 0; ii <= limit; ++ii) {
