@@ -528,16 +528,24 @@ public:
 };
 
 template<class T>
+class Image2D;
+
+template<class T>
 class Image1D {
 protected:
     std::vector<T> pos;
     std::vector<T> neg;
 
     double const width;
+private:
+    Image2D<T> * parent = nullptr;
 public:
-    Image1D(double const _width);
+    Image1D(double const _width, Image2D<T> * _parent = nullptr);
 
     T& operator[](double index);
+
+    double min_val = std::numeric_limits<double>::max();
+    double max_val = -std::numeric_limits<double>::max();
 };
 
 template<class T>
@@ -552,6 +560,16 @@ public:
     Image2D(double const _width1, const double _width2);
 
     Image1D<T>& operator[](double const index);
+
+    double min_x = std::numeric_limits<double>::max();
+    double min_y = std::numeric_limits<double>::max();
+
+    double max_x = -std::numeric_limits<double>::max();
+    double max_y = -std::numeric_limits<double>::max();
+
+    void plot(std::string const& prefix, HistConfig const& conf);
+
+    void data2file(std::ostream& out);
 };
 
 } // namespace runningstats

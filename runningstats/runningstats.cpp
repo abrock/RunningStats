@@ -1418,11 +1418,17 @@ HistConfig HistConfig::clone() const {
 }
 
 template<class T>
-Image1D<T>::Image1D(const double _width) :width(_width) {}
+Image1D<T>::Image1D(const double _width, Image2D<T> *_parent) :width(_width), parent(_parent) {}
 
 template<class T>
 T &Image1D<T>::operator[](double index) {
     int64_t ind = std::round(index / width);
+    min_val = std::min(min_val, ind * width);
+    max_val = std::max(max_val, ind * width);
+    if (nullptr != parent) {
+        parent->min_y = std::min(parent->min_y, min_val);
+        parent->max_y = std::max(parent->max_y, max_val);
+    }
     if (ind >= 0) {
         if (size_t(ind+2) > pos.size()) {
             pos.resize(ind+1);
@@ -1442,18 +1448,63 @@ Image2D<T>::Image2D(const double _width1, double const _width2) : width1(_width1
 
 template<class T>
 Image1D<T> &Image2D<T>::operator[](const double index) {
-    int64_t ind = std::round(index / width1);
+    int64_t const ind = std::round(index / width1);
+    min_x = std::min(min_x, ind * width1);
+    max_x = std::max(max_x, ind * width1);
     if (ind >= 0) {
         while (size_t(ind+2) > pos.size()) {
-            pos.push_back(Image1D<T>(width2));
+            pos.push_back(Image1D<T>(width2, this));
         }
         return pos[ind];
     }
-    size_t ind_neg = -ind;
+    size_t const ind_neg = -ind;
     while (ind_neg + 2 > neg.size()) {
-        neg.push_back(Image1D<T>(width2));
+        neg.push_back(Image1D<T>(width2, this));
     }
     return neg[ind_neg];
+}
+
+template<class T>
+void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
+    std::string const data_file = prefix + ".data";
+    std::ofstream data_out(data_file);
+    data2file(data_out);
+    std::stringstream cmd;
+    cmd << "set term svg enhanced background rgb 'white';\n";
+    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << conf.toString() << "\n";
+    cmd << "set xrange[" << min_x - width1/2 << ":" << max_x + width1/2 << "]; \n";
+    cmd << "set yrange[" << min_y - width2/2 << ":" << max_y + width2/2 << "]; \n";
+    cmd << "set xtics out;\n";
+    cmd << "set ytics out;\n";
+    cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
+    cmd << "replot;\n";
+    gnuplotio::Gnuplot plt;
+    plt << cmd.str();
+    std::ofstream cmd_out(prefix + ".gpl");
+    cmd_out << cmd.str();
+}
+
+template<>
+void Image2D<RunningStats>::data2file(std::ostream &out) {
+    for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
+        for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
+            out << xx << "\t" << yy << "\t" << (this->operator[](xx))[yy].getMean() << std::endl;
+        }
+        out << std::endl;
+    }
+}
+
+template<class T>
+void Image2D<T>::data2file(std::ostream &out) {
+    for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
+        for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
+            out << xx << "\t" << yy << "\t" << (this->operator[](xx))[yy] << std::endl;
+        }
+        out << std::endl;
+    }
 }
 
 template class Image1D<double>;

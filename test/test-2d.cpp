@@ -100,7 +100,6 @@ TEST(Stats2D, merge) {
         b.push_unsafe(1,0);
     }
     c.push(a);
-
 }
 
 int main(int argc, char** argv) {
