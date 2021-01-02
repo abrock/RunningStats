@@ -21,7 +21,9 @@ int main(int argc, char ** argv) {
         stats.push_unsafe(val);
     }
 
-    std::cout << "Finished reading values" << std::endl;
+    std::cout << "# Finished reading values, 1. mean 2. stddev 3. median 4. quantile 25% 5. quantile 75%" << std::endl
+              << stats.getMean() << "\t" << stats.getAccurateStddev() << "\t"
+              << stats.getMedian() << "\t" << stats.getQuantile(.25) << "\t" << stats.getQuantile(.75) << std::endl;
     stats.plotHistAndCDF(argv[1], getBinSize(stats));
 
     return EXIT_SUCCESS;
