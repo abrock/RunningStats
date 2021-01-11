@@ -559,7 +559,7 @@ double QuantileStats<T>::getTrimmedMean(const T & ignore) {
         return getMean();
     }
     if (ignore >= 1) {
-        return double(getQuantile(0.5));
+        return double(getMedian());
     }
     if (values.size() == 0) {
         return 0;
@@ -1352,6 +1352,33 @@ std::string HistConfig::toString() const {
     return out.str();
 }
 
+HistConfig &HistConfig::extractMean() {
+    extract = Extract::Mean;
+    return *this;
+}
+HistConfig &HistConfig::extractMedian() {
+    extract = Extract::Median;
+    return *this;
+}
+HistConfig &HistConfig::extractTrimmedMean(double const param) {
+    extract = Extract::TrimmedMean;
+    extractParam = param;
+    return *this;
+}
+HistConfig &HistConfig::extractStddev() {
+    extract = Extract::Stddev;
+    return *this;
+}
+HistConfig &HistConfig::extractVariance() {
+    extract = Extract::Variance;
+    return *this;
+}
+HistConfig &HistConfig::extractQuantile(double const param) {
+    extract = Extract::Quantile;
+    extractParam = param;
+    return *this;
+}
+
 HistConfig &HistConfig::setLogX(const bool val) {
     logX = val;
     return *this;
@@ -1468,7 +1495,7 @@ template<class T>
 void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::string const data_file = prefix + ".data";
     std::ofstream data_out(data_file);
-    data2file(data_out);
+    data2file(data_out, conf);
     std::stringstream cmd;
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
@@ -1488,17 +1515,41 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
 }
 
 template<>
-void Image2D<RunningStats>::data2file(std::ostream &out) {
+void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConfig &conf) {
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
-            out << xx << "\t" << yy << "\t" << (this->operator[](xx))[yy].getMean() << std::endl;
+            out << xx << "\t" << yy << "\t";
+            switch (conf.extract) {
+            case HistConfig::Extract::Mean: out << (this->operator[](xx))[yy].getMean() << std::endl; break;
+            case HistConfig::Extract::Stddev: out << (this->operator[](xx))[yy].getStddev() << std::endl; break;
+            case HistConfig::Extract::Variance: out << (this->operator[](xx))[yy].getVar() << std::endl; break;
+            case HistConfig::Extract::Median: out << (this->operator[](xx))[yy].getMedian() << std::endl; break;
+            case HistConfig::Extract::TrimmedMean: out << (this->operator[](xx))[yy].getTrimmedMean(conf.extractParam) << std::endl; break;
+            case HistConfig::Extract::Quantile: out << (this->operator[](xx))[yy].getQuantile(conf.extractParam) << std::endl; break;
+            }
+        }
+        out << std::endl;
+    }
+}
+
+template<>
+void Image2D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf) {
+    for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
+        for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
+            out << xx << "\t" << yy << "\t";
+            switch (conf.extract) {
+            case HistConfig::Extract::Mean: out << (this->operator[](xx))[yy].getMean() << std::endl; break;
+            case HistConfig::Extract::Stddev: out << (this->operator[](xx))[yy].getStddev() << std::endl; break;
+            case HistConfig::Extract::Variance: out << (this->operator[](xx))[yy].getVar() << std::endl; break;
+            default: throw std::runtime_error("RunningStats does not provide the requested extractor");
+            }
         }
         out << std::endl;
     }
 }
 
 template<class T>
-void Image2D<T>::data2file(std::ostream &out) {
+void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
             out << xx << "\t" << yy << "\t" << (this->operator[](xx))[yy] << std::endl;
@@ -1512,6 +1563,7 @@ template class Image1D<RunningStats>;
 template class Image2D<double>;
 template class Image2D<size_t>;
 template class Image2D<RunningStats>;
+template class Image2D<QuantileStats<float> >;
 
 template<class T>
 StatsN<T>::StatsN(const std::vector<std::string> _names) : names(_names) {

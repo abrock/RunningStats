@@ -62,6 +62,25 @@ public:
 
     std::string misc;
 
+    enum class Extract {
+        Mean,
+        Median,
+        TrimmedMean,
+        Stddev,
+        Variance,
+        Quantile
+    };
+
+    Extract extract = Extract::Mean;
+    double extractParam = .5;
+
+    HistConfig& extractMean();
+    HistConfig& extractMedian();
+    HistConfig& extractTrimmedMean(double const param = 0.5);
+    HistConfig& extractStddev();
+    HistConfig& extractVariance();
+    HistConfig& extractQuantile(double const param = 0.5);
+
     HistConfig& setMinMaxX(double const min, double const max);
     HistConfig& setMinMaxY(double const min, double const max);
 
@@ -368,6 +387,11 @@ public:
 
     std::vector<T> getData();
 
+    /**
+     * @brief getTrimmedMean calculates the mean of the central part of the data, ignoring top and bottom outliers.
+     * @param ignore Amount of data to ignore. 0.5 means ignore 50%, so the top 25% and bottom 25% is ignored.
+     * @return
+     */
     double getTrimmedMean(const T & ignore);
 
     void sort() const;
@@ -569,7 +593,7 @@ public:
 
     void plot(std::string const& prefix, HistConfig const& conf);
 
-    void data2file(std::ostream& out);
+    void data2file(std::ostream& out, HistConfig const& conf);
 };
 
 } // namespace runningstats

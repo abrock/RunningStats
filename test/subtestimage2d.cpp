@@ -37,6 +37,16 @@ TEST(Image2D, plot) {
     test.plot("x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y"));
 }
 
+TEST(Image2D, extractor) {
+    Image2D<QuantileStats<float> > test(1, 0.025);
+    for (double xx = -10; xx <= 10; ++xx) {
+        for (double yy = -10; yy <= 10; yy += 0.025) {
+            test[xx][yy].push_unsafe(yy);
+        }
+    }
+    test.plot("x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y").extractMedian());
+}
+
 TEST(Image2D, minmax) {
     {
         Image2D<double> test(1, 1);
