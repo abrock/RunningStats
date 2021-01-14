@@ -1379,6 +1379,11 @@ HistConfig &HistConfig::extractQuantile(double const param) {
     return *this;
 }
 
+HistConfig &HistConfig::extractMeanAndStddev() {
+    extract = Extract::MeanAndStddev;
+    return *this;
+}
+
 HistConfig &HistConfig::setLogX(const bool val) {
     logX = val;
     return *this;
@@ -1469,6 +1474,69 @@ T &Image1D<T>::operator[](double index) {
     return neg[ind_neg];
 }
 
+template<>
+void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConfig &conf) {
+    for (double xx = min_val; xx <= max_val + width/2; xx += width) {
+        out << xx << "\t" ;
+        switch (conf.extract) {
+        case HistConfig::Extract::Mean: out << (this->operator[](xx)).getMean() << std::endl; break;
+        case HistConfig::Extract::Stddev: out << (this->operator[](xx)).getStddev() << std::endl; break;
+        case HistConfig::Extract::Variance: out << (this->operator[](xx)).getVar() << std::endl; break;
+        case HistConfig::Extract::Median: out << (this->operator[](xx)).getMedian() << std::endl; break;
+        case HistConfig::Extract::TrimmedMean: out << (this->operator[](xx)).getTrimmedMean(conf.extractParam) << std::endl; break;
+        case HistConfig::Extract::Quantile: out << (this->operator[](xx)).getQuantile(conf.extractParam) << std::endl; break;
+        case HistConfig::Extract::MeanAndStddev: out << (this->operator[](xx)).getMean() << "\t"
+                                                     << (this->operator[](xx)).getStddev() << std::endl; break;
+        }
+    }
+}
+
+template<>
+void Image1D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf) {
+    for (double xx = min_val; xx <= max_val + width/2; xx += width) {
+        out << xx << "\t" ;
+        switch (conf.extract) {
+        case HistConfig::Extract::Mean: out << (this->operator[](xx)).getMean() << std::endl; break;
+        case HistConfig::Extract::Stddev: out << (this->operator[](xx)).getStddev() << std::endl; break;
+        case HistConfig::Extract::Variance: out << (this->operator[](xx)).getVar() << std::endl; break;
+        case HistConfig::Extract::MeanAndStddev: out << (this->operator[](xx)).getMean() << "\t"
+                                                     << (this->operator[](xx)).getStddev() << std::endl; break;
+        default: throw std::runtime_error("RunningStats does not provide the requested extractor");
+        }
+    }
+    out << std::endl;
+}
+
+template<class T>
+void Image1D<T>::data2file(std::ostream& out, const HistConfig &conf) {
+    for (double xx = min_val; xx <= max_val + width/2; xx += width) {
+        out << xx << "\t" << (this->operator[](xx)) << std::endl;
+    }
+}
+
+template<class T>
+void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
+    std::string const data_file = prefix + ".data";
+    std::ofstream data_out(data_file);
+    data2file(data_out, conf);
+    std::stringstream cmd;
+    cmd << "set term svg enhanced background rgb 'white';\n";
+    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << conf.toString() << "\n";
+    cmd << "set xrange[" << min_val - width/2 << ":" << max_val + width/2 << "]; \n";
+    cmd << "set xtics out;\n";
+    cmd << "set ytics out;\n";
+    cmd << "plot '" << data_file << "' u " << (conf.extract == HistConfig::Extract::MeanAndStddev ? "1:2:3 with yerrorbars" : "1:2 w lp ")
+        << " notitle;\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
+    cmd << "replot;\n";
+    gnuplotio::Gnuplot plt;
+    plt << cmd.str();
+    std::ofstream cmd_out(prefix + ".gpl");
+    cmd_out << cmd.str();
+}
+
 template<class T>
 Image2D<T>::Image2D(const double _width1, double const _width2) : width1(_width1), width2(_width2) {
 }
@@ -1526,6 +1594,7 @@ void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
             case HistConfig::Extract::Median: out << (this->operator[](xx))[yy].getMedian() << std::endl; break;
             case HistConfig::Extract::TrimmedMean: out << (this->operator[](xx))[yy].getTrimmedMean(conf.extractParam) << std::endl; break;
             case HistConfig::Extract::Quantile: out << (this->operator[](xx))[yy].getQuantile(conf.extractParam) << std::endl; break;
+            default: throw std::runtime_error("Extractor not implemented for Image2D");
             }
         }
         out << std::endl;

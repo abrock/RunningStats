@@ -75,6 +75,16 @@ TEST(Image2D, minmax) {
     }
 }
 
+TEST(Image1D, plot) {
+    Image1D<RunningStats> test(1);
+    for (int ii = 0; ii <= 20; ++ii) {
+        test[ii].push_unsafe(ii);
+        test[ii].push_unsafe(ii-ii);
+        test[ii].push_unsafe(ii+ii);
+    }
+    test.plot("Image1D-with-errorbars", HistConfig().extractMeanAndStddev());
+}
+
 
 TEST(Image1D, minmax) {
     {

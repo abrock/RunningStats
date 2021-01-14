@@ -68,7 +68,8 @@ public:
         TrimmedMean,
         Stddev,
         Variance,
-        Quantile
+        Quantile,
+        MeanAndStddev
     };
 
     Extract extract = Extract::Mean;
@@ -80,6 +81,7 @@ public:
     HistConfig& extractStddev();
     HistConfig& extractVariance();
     HistConfig& extractQuantile(double const param = 0.5);
+    HistConfig& extractMeanAndStddev();
 
     HistConfig& setMinMaxX(double const min, double const max);
     HistConfig& setMinMaxY(double const min, double const max);
@@ -570,6 +572,10 @@ public:
 
     double min_val = std::numeric_limits<double>::max();
     double max_val = -std::numeric_limits<double>::max();
+
+    void plot(std::string const& prefix, HistConfig const& conf);
+
+    void data2file(std::ostream &out, const HistConfig &conf);
 };
 
 template<class T>
