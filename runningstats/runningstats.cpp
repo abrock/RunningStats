@@ -707,7 +707,11 @@ double BinaryStats::get() const {
 }
 
 double BinaryStats::getPercent() const {
-    return 100*get();
+    return 100.0*get();
+}
+
+double BinaryStats::getFalsePercent() const {
+    return 100.0*(1.0-get());
 }
 
 size_t BinaryStats::getTrueCount() const {
@@ -716,6 +720,14 @@ size_t BinaryStats::getTrueCount() const {
 
 size_t BinaryStats::getFalseCount() const {
     return count_total - count_true;
+}
+
+std::string BinaryStats::print() const {
+    std::stringstream out;
+    out << "True: " << count_true << " (" << getPercent() << "%), "
+        << "False: " << getFalseCount() << " (" << getFalsePercent() << "%), "
+        << "Total: " << getTotalCount();
+    return out.str();
 }
 
 size_t BinaryStats::getTotalCount() const {

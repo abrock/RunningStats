@@ -129,12 +129,15 @@ public:
      * @return
      */
     double getPercent() const;
+    double getFalsePercent() const;
     size_t getTrueCount() const;
     size_t getTotalCount() const;
     static BinaryStats merged(const BinaryStats &a, const BinaryStats &b);
     void pushTrue(const size_t num);
     void pushFalse(const size_t num);
     size_t getFalseCount() const;
+
+    std::string print() const;
 };
 
 class RunningCovariance {
