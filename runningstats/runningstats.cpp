@@ -1384,6 +1384,11 @@ HistConfig &HistConfig::extractMeanAndStddev() {
     return *this;
 }
 
+HistConfig &HistConfig::extractMedianAndIQR() {
+    extract = Extract::MedianAndIQR;
+    return *this;
+}
+
 HistConfig &HistConfig::setLogX(const bool val) {
     logX = val;
     return *this;
@@ -1486,7 +1491,10 @@ void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
         case HistConfig::Extract::TrimmedMean: out << (this->operator[](xx)).getTrimmedMean(conf.extractParam) << std::endl; break;
         case HistConfig::Extract::Quantile: out << (this->operator[](xx)).getQuantile(conf.extractParam) << std::endl; break;
         case HistConfig::Extract::MeanAndStddev: out << (this->operator[](xx)).getMean() << "\t"
-                                                     << (this->operator[](xx)).getStddev() << std::endl; break;
+                                                                                         << (this->operator[](xx)).getStddev() << std::endl; break;
+        case HistConfig::Extract::MedianAndIQR: out << (this->operator[](xx)).getMedian() << "\t"
+                                                                                          << (this->operator[](xx)).getQuantile(.25) << "\t"
+                                                                                                                                     << (this->operator[](xx)).getQuantile(.75) << std::endl; break;
         }
     }
 }
@@ -1500,7 +1508,7 @@ void Image1D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf)
         case HistConfig::Extract::Stddev: out << (this->operator[](xx)).getStddev() << std::endl; break;
         case HistConfig::Extract::Variance: out << (this->operator[](xx)).getVar() << std::endl; break;
         case HistConfig::Extract::MeanAndStddev: out << (this->operator[](xx)).getMean() << "\t"
-                                                     << (this->operator[](xx)).getStddev() << std::endl; break;
+                                                                                         << (this->operator[](xx)).getStddev() << std::endl; break;
         default: throw std::runtime_error("RunningStats does not provide the requested extractor");
         }
     }
@@ -1526,8 +1534,13 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     cmd << "set xrange[" << min_val - width/2 << ":" << max_val + width/2 << "]; \n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
-    cmd << "plot '" << data_file << "' u " << (conf.extract == HistConfig::Extract::MeanAndStddev ? "1:2:3 with yerrorbars" : "1:2 w lp ")
-        << " notitle;\n";
+    cmd << "plot '" << data_file << "' u ";
+    switch(conf.extract) {
+    case HistConfig::Extract::MeanAndStddev: cmd << "1:2:3 with yerrorbars"; break;
+    case HistConfig::Extract::MedianAndIQR: cmd << "1:2:3:4 with yerrorbars"; break;
+    default: cmd << "1:2 w lp"; break;
+    }
+    cmd << " notitle;\n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << "replot;\n";
@@ -1629,6 +1642,7 @@ void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
 
 template class Image1D<double>;
 template class Image1D<RunningStats>;
+template class Image1D<QuantileStats<float> >;
 template class Image2D<double>;
 template class Image2D<size_t>;
 template class Image2D<RunningStats>;

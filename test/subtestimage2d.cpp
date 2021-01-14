@@ -76,13 +76,30 @@ TEST(Image2D, minmax) {
 }
 
 TEST(Image1D, plot) {
-    Image1D<RunningStats> test(1);
-    for (int ii = 0; ii <= 20; ++ii) {
-        test[ii].push_unsafe(ii);
-        test[ii].push_unsafe(ii-ii);
-        test[ii].push_unsafe(ii+ii);
+    {
+        Image1D<RunningStats> test(1);
+        for (int ii = 0; ii <= 20; ++ii) {
+            test[ii].push_unsafe(ii);
+            test[ii].push_unsafe(ii-ii);
+            test[ii].push_unsafe(ii+ii);
+        }
+        test.plot("Image1D-with-errorbars", HistConfig().extractMeanAndStddev());
     }
-    test.plot("Image1D-with-errorbars", HistConfig().extractMeanAndStddev());
+    {
+        Image1D<QuantileStats<float> > test(1);
+        for (double ii = 0; ii <= 20; ++ii) {
+            for (size_t jj = 0; jj < 10; ++jj) {
+                test[ii].push_unsafe(ii);
+            }
+            for (size_t jj = 0; jj < 10; ++jj) {
+                test[ii].push_unsafe(ii-ii/4);
+            }
+            for (size_t jj = 0; jj < 10; ++jj) {
+                test[ii].push_unsafe(ii+ii/2);
+            }
+        }
+        test.plot("Image1D-with-quantiles", HistConfig().extractMedianAndIQR());
+    }
 }
 
 

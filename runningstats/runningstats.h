@@ -69,7 +69,8 @@ public:
         Stddev,
         Variance,
         Quantile,
-        MeanAndStddev
+        MeanAndStddev,
+        MedianAndIQR
     };
 
     Extract extract = Extract::Mean;
@@ -82,6 +83,7 @@ public:
     HistConfig& extractVariance();
     HistConfig& extractQuantile(double const param = 0.5);
     HistConfig& extractMeanAndStddev();
+    HistConfig& extractMedianAndIQR();
 
     HistConfig& setMinMaxX(double const min, double const max);
     HistConfig& setMinMaxY(double const min, double const max);
