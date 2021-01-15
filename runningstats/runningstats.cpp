@@ -437,6 +437,7 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb \"white\";\n"
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString();
@@ -484,6 +485,7 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb \"white\";\n"
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString();
@@ -861,6 +863,7 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
 
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb \"white\";\n";
     cmd << "set output \"" << prefix + ".svg\"; \n";
     cmd << conf.toString();
@@ -1012,6 +1015,7 @@ void Histogram2D::plotHist(const std::string prefix, const double absolute) cons
         data_out << std::endl;
     }
     std::stringstream cmd;
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
@@ -1294,6 +1298,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     std::stringstream cmd;
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString();
@@ -1540,6 +1545,7 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::ofstream data_out(data_file);
     data2file(data_out, conf);
     std::stringstream cmd;
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString() << "\n";
@@ -1590,6 +1596,7 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::ofstream data_out(data_file);
     data2file(data_out, conf);
     std::stringstream cmd;
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString() << "\n";
@@ -1802,6 +1809,7 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     double const size_x = limits_x.getMax() - limits_x.getMin();
     double const size_y = limits_y.getMax() - limits_y.getMin();
     double const margin = 0.04;
+    cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term svg enhanced background rgb \"white\";\n"
         << "set output \"" << prefix + ".svg\"; \n"
         << conf.toString() << ";\n"
