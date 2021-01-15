@@ -19,10 +19,12 @@ add_subdirectory(test)
 # Install targets
 include(${CMAKE_SOURCE_DIR}/cmake/InstallConfig.cmake)
 
-add_executable(runningstats-autohist runningstats-autohist.cpp)
+foreach(PROGRAM runningstats-autohist runningstats-print)
+add_executable(${PROGRAM} ${PROGRAM}.cpp)
 
-target_link_libraries(runningstats-autohist
+target_link_libraries(${PROGRAM}
     runningstats
     )
 
-install(TARGETS runningstats-autohist DESTINATION bin)
+install(TARGETS ${PROGRAM} DESTINATION bin)
+endforeach()
