@@ -556,7 +556,7 @@ std::vector<T> QuantileStats<T>::getData() {
 }
 
 template<class T>
-double QuantileStats<T>::getTrimmedMean(const T & ignore) {
+double QuantileStats<T>::getTrimmedMean(const T & ignore) const {
     if (ignore <= 0) {
         return getMean();
     }

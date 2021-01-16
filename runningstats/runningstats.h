@@ -399,7 +399,7 @@ public:
      * @param ignore Amount of data to ignore. 0.5 means ignore 50%, so the top 25% and bottom 25% is ignored.
      * @return
      */
-    double getTrimmedMean(const T & ignore);
+    double getTrimmedMean(const T & ignore) const;
 
     void sort() const;
 
