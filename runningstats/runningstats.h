@@ -604,6 +604,8 @@ public:
 
     void plot(std::string const& prefix, HistConfig const& conf);
 
+    void push_unsafe(double const x, double const y, std::vector<double> const& values);
+
     void data2file(std::ostream& out, HistConfig const& conf);
 };
 

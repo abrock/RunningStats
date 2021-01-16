@@ -1615,6 +1615,38 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
 }
 
 template<>
+void Image2D<RunningStats>::push_unsafe(const double x, const double y, const std::vector<double> &values) {
+    for (auto const val : values) {
+        (this->operator[](x))[y].push_unsafe(val);
+    }
+}
+
+template<>
+void Image2D<QuantileStats<float> >::push_unsafe(const double x, const double y, const std::vector<double> &values) {
+    for (auto const val : values) {
+        (this->operator[](x))[y].push_unsafe(val);
+    }
+}
+
+template<>
+void Image2D<std::vector<QuantileStats<float> > >::push_unsafe(const double x, const double y, const std::vector<double> &values) {
+    std::vector<QuantileStats<float> > & target = (this->operator[](x))[y];
+    if (target.size() < values.size()) {
+        target.resize(values.size());
+    }
+    for (size_t ii = 0; ii < values.size(); ++ii) {
+        target[ii].push_unsafe(values[ii]);
+    }
+}
+
+template<class T>
+void Image2D<T>::push_unsafe(const double x, const double y, const std::vector<double> &values) {
+    for (auto const val : values) {
+        (this->operator[](x))[y] += val;
+    }
+}
+
+template<>
 void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConfig &conf) {
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
@@ -1649,6 +1681,28 @@ void Image2D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf)
     }
 }
 
+template<>
+void Image2D<std::vector<QuantileStats<float> > >::data2file(std::ostream &out, const HistConfig &conf) {
+    for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
+        for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
+            out << xx << "\t" << yy;
+            for (auto const& it : (this->operator[](xx))[yy]) {
+                switch (conf.extract) {
+                case HistConfig::Extract::Mean: out << "\t" << it.getMean(); break;
+                case HistConfig::Extract::Stddev: out << "\t" << it.getStddev(); break;
+                case HistConfig::Extract::Variance: out << "\t" << it.getVar(); break;
+                case HistConfig::Extract::Median: out << "\t" << it.getMedian(); break;
+                case HistConfig::Extract::Quantile: out << "\t" << it.getQuantile(conf.extractParam); break;
+                case HistConfig::Extract::TrimmedMean: out << "\t" << it.getTrimmedMean(conf.extractParam); break;
+                default: throw std::runtime_error("QuantileStats does not provide the requested extractor");
+                }
+            }
+            out << std::endl;
+        }
+        out << std::endl;
+    }
+}
+
 template<class T>
 void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
@@ -1666,6 +1720,7 @@ template class Image2D<double>;
 template class Image2D<size_t>;
 template class Image2D<RunningStats>;
 template class Image2D<QuantileStats<float> >;
+template class Image2D<std::vector<QuantileStats<float> > >;
 
 template<class T>
 StatsN<T>::StatsN(const std::vector<std::string> _names) : names(_names) {

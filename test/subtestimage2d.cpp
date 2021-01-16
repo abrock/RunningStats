@@ -47,6 +47,18 @@ TEST(Image2D, extractor) {
     test.plot("x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y").extractMedian());
 }
 
+TEST(Image2D, push_unsafe) {
+    Image2D<std::vector<QuantileStats<float> > > test(1,1);
+    test.push_unsafe(0,0,{0,1,2,3,4});
+    test.push_unsafe(1,0,{0,1,2,3,4});
+    test.push_unsafe(0,1,{0,1,2,3,4});
+    test.push_unsafe(1,1,{0,1,2,3,4});
+    std::cout << "Mean values: " << std::endl;
+    test.data2file(std::cout, HistConfig().extractMean());
+    std::cout << "Stddev: " << std::endl;
+    test.data2file(std::cout, HistConfig().extractStddev());
+}
+
 TEST(Image2D, minmax) {
     {
         Image2D<double> test(1, 1);
