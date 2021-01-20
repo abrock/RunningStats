@@ -450,7 +450,7 @@ public:
 
     void plotHistAndCDF(std::string const prefix, double const bin_size, HistConfig conf) const;
 
-    double FreedmanDiaconisBinSize();
+    double FreedmanDiaconisBinSize() const;
 
     static T getQuantile(const double quantile, std::vector<T> &values);
 
