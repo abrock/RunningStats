@@ -406,7 +406,8 @@ void QuantileStats<T>::sort() const {
 
 template<class T>
 void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, HistConfig conf) const {
-    Histogram h(bin_size);
+    double const _bin_size = bin_size > 0 ? bin_size : FreedmanDiaconisBinSize();
+    Histogram h(_bin_size);
     h.push_vector_unsafe(values);
     setRangeByIgnoreAmount(conf);
     h.plotHist(prefix, conf);
