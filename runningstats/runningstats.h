@@ -179,6 +179,35 @@ public:
     void push_unsafe(double x, double y);
 };
 
+class WeightedRunningStats {
+private:
+    std::mutex push_mutex;
+
+    double sum = 0;
+    double squaresum = 0;
+    double weight_sum = 0;
+    double min = 0;
+    double max = 0;
+    size_t n = 0;
+
+    double mean = 0;
+    double varSum = 0;
+
+public:
+
+    WeightedRunningStats();
+    WeightedRunningStats(WeightedRunningStats const& rhs);
+    WeightedRunningStats & operator= ( const WeightedRunningStats & other);
+
+    void push_unsafe(double const val, double const weight);
+
+    double getMean() const;
+
+    double getVar() const;
+
+    double getStddev() const;
+};
+
 class RunningStats {
 
 private:

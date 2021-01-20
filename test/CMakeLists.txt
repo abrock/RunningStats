@@ -12,7 +12,14 @@ foreach(executable test-2d test-knuth)
 add_executable(${executable} ${executable}.cpp)
 endforeach()
 
-add_executable(test-runningstats test-runningstats.cpp subtestimage.cpp subtestimage2d.cpp subtestcopyassign.cpp subteststatsnd.cpp)
+add_executable(test-runningstats
+    test-runningstats.cpp
+    subtestimage.cpp
+    subtestimage2d.cpp
+    subtestcopyassign.cpp
+    subteststatsnd.cpp
+    subtest_weighted_runningstats.cpp
+    )
 
 foreach(executable test-runningstats test-2d test-knuth)
 target_link_libraries(${executable} ${LIBRARY_NAME})

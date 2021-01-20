@@ -1883,4 +1883,44 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     out << cmd.str();
 }
 
+WeightedRunningStats::WeightedRunningStats() {}
+
+WeightedRunningStats::WeightedRunningStats(const WeightedRunningStats &rhs)
+    :
+      sum(rhs.sum),
+      squaresum(rhs.squaresum),
+      weight_sum(rhs.weight_sum),
+      min(rhs.min),
+      max(rhs.max),
+      n(rhs.n),
+      mean(rhs.mean),
+      varSum(rhs.varSum)
+{}
+
+void WeightedRunningStats::push_unsafe(const double val, const double weight) {
+    sum += val * weight;
+    squaresum += val * (val * weight);
+    weight_sum += weight;
+    n++;
+}
+
+double WeightedRunningStats::getMean() const {
+    if (n <= 0 || weight_sum <= 0) {
+        return 0;
+    }
+    return sum / weight_sum;
+}
+
+double WeightedRunningStats::getVar() const {
+    if (n <= 0 || weight_sum <= 0) {
+        return 0;
+    }
+    double const mean = getMean();
+    return (squaresum - 2 * mean * sum + mean * mean * weight_sum) / weight_sum;
+}
+
+double WeightedRunningStats::getStddev() const {
+    return std::sqrt(getVar());
+}
+
 } // namespace runningstats
