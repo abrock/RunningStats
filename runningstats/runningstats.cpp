@@ -476,10 +476,18 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     T current = min;
     std::vector<std::pair<T, float> > plot_values;
     plot_values.reserve(max_pts_CDF_plot);
+    double const _min = std::max(min, conf.min_x);
+    double const _max = std::min(max, conf.max_x);
+    double const orig_range = max - min;
+    double const plot_range = _max - _min;
+    double reduced_range_factor = orig_range / plot_range;
+    if (!std::isfinite(reduced_range_factor) || reduced_range_factor < 1) {
+        reduced_range_factor = 1;
+    }
     for (size_t ii = 0; ii < values.size(); ++ii) {
         if (values[ii] >= current) {
             plot_values.push_back({values[ii], float(ii)/(values.size()-1)});
-            current = min + ((max-min) * plot_values.size()) / max_pts_CDF_plot;
+            current = min + ((max-min) * plot_values.size()) / (max_pts_CDF_plot * reduced_range_factor);
         }
     }
     plot_values.push_back({max, 1});
