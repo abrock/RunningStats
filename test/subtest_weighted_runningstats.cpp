@@ -54,7 +54,7 @@ TEST(WeightedRunningStats, var) {
         }
     }
 
-    for (int mean = -3; mean <= 3; ++mean) {
+    for (int mean = -30; mean <= 30; ++mean) {
         for (int max_offset = 1; max_offset < 10; ++max_offset) {
             WeightedRunningStats s;
             double squaresum = 0;
