@@ -414,10 +414,11 @@ void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size,
 }
 
 template<class T>
-void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const double absolute) const {
-    Histogram h(bin_size);
+void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const bool absolute) const {
+    double const _bin_size = bin_size > 0 ? bin_size : FreedmanDiaconisBinSize();
+    Histogram h(_bin_size);
     h.push_vector_unsafe(values);
-    h.plotHist(prefix, HistConfig().setAbsolute());
+    h.plotHist(prefix, HistConfig().setAbsolute(absolute));
 }
 
 namespace  {
@@ -510,7 +511,7 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
 }
 
 template<class T>
-void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, const double absolute) const {
+void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, const bool absolute) const {
     plotHist(prefix + "-hist", bin_size, absolute);
     plotCDF(prefix + "-cdf");
 }
@@ -984,7 +985,7 @@ bool Histogram2D::push_unsafe(const double val1, const double val2) {
     return true;
 }
 
-void Histogram2D::plotHist(const std::string prefix, const double absolute) const {
+void Histogram2D::plotHist(const std::string prefix, const bool absolute) const {
     std::string const data_file = prefix + ".data";
     std::ofstream data_out(data_file);
     for (auto const& it : data) {

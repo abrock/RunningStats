@@ -356,7 +356,7 @@ public:
 
     bool push_unsafe(double const val1, double const val2);
 
-    void plotHist(std::string const prefix, double const absolute = true) const;
+    void plotHist(std::string const prefix, bool const absolute = true) const;
 };
 
 class Histogram2Dfixed {
@@ -432,7 +432,7 @@ public:
 
     void sort() const;
 
-    void plotHist(std::string const prefix, double const bin_size, double const absolute = true) const;
+    void plotHist(std::string const prefix, double const bin_size, const bool absolute = true) const;
     void plotHist(std::string const prefix, double const bin_size, HistConfig conf) const;
 
     void plotCDF(std::string const prefix, HistConfig conf = HistConfig()) const;
@@ -446,7 +446,7 @@ public:
      */
     void plotReducedCDF(std::string const prefix, HistConfig conf = HistConfig()) const;
 
-    void plotHistAndCDF(std::string const prefix, double const bin_size, double const absolute = true) const;
+    void plotHistAndCDF(std::string const prefix, double const bin_size, const bool absolute = true) const;
 
     void plotHistAndCDF(std::string const prefix, double const bin_size, HistConfig conf) const;
 
