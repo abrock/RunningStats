@@ -1141,7 +1141,21 @@ std::vector<std::pair<T, T> > Stats2D<T>::getData() const {
 
 template<class T>
 void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, double> bin_size, const HistConfig &conf) const {
-    getHistogram2Dfixed(bin_size, conf).plotHist(prefix, conf);
+    double bin_x = bin_size.first;
+    double const range_x = (quantiles_1.getMax() - quantiles_1.getMin());
+    double const n_x = range_x / bin_x;
+    if (conf.max_nx > 0 && n_x > conf.max_nx) {
+        bin_x = range_x / conf.max_nx;
+    }
+
+    double bin_y = bin_size.second;
+    double const range_y = (quantiles_2.getMax() - quantiles_2.getMin());
+    double const n_y = range_y / bin_y;
+    if (conf.max_ny > 0 && n_y > conf.max_ny) {
+        bin_y = range_y / conf.max_ny;
+    }
+
+    getHistogram2Dfixed({bin_x, bin_y}, conf).plotHist(prefix, conf);
 }
 
 template<class T>
@@ -1380,6 +1394,12 @@ std::string HistConfig::toString() const {
     }
     out << misc;
     return out.str();
+}
+
+HistConfig &HistConfig::setMaxBins(const int nx, const int ny) {
+    max_nx = nx;
+    max_ny = ny;
+    return *this;
 }
 
 HistConfig &HistConfig::extractMean() {

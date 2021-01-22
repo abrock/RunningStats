@@ -48,6 +48,15 @@ public:
 
     double ignore_amount = 0;
 
+    /**
+     * @brief max_nx Maximum number of bins in x-direction
+     */
+    int max_nx = -1;
+    /**
+     * @brief max_ny Maximum number of bins in y-direction
+     */
+    int max_ny = -1;
+
     void setIgnoreAmount(double const val);
 
     std::string title;
@@ -75,6 +84,8 @@ public:
 
     Extract extract = Extract::Mean;
     double extractParam = .5;
+
+    HistConfig& setMaxBins(int const nx, int const ny);
 
     HistConfig& extractMean();
     HistConfig& extractMedian();
