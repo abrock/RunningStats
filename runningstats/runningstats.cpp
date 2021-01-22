@@ -1166,7 +1166,7 @@ void Stats2D<T>::getSummary(std::ostream &out) {
 }
 
 template<class T>
-std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() {
+std::pair<double, double> Stats2D<T>::FreedmanDiaconisBinSize() const {
     double const ignore_amount = 50.0/100.0;
     double const freed_1 = quantiles_1.FreedmanDiaconisBinSize();
     double const freed_2 = quantiles_2.FreedmanDiaconisBinSize();

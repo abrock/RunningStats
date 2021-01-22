@@ -536,7 +536,7 @@ public:
 
     void getSummary(std::ostream& out);
 
-    std::pair<double, double> FreedmanDiaconisBinSize();
+    std::pair<double, double> FreedmanDiaconisBinSize() const;
 
     size_t size() const;
 
