@@ -57,6 +57,13 @@ public:
      */
     int max_ny = -1;
 
+    /**
+     * @brief max_plot_pts is the maximum number of values to be used in a plot.
+     */
+    int64_t max_plot_pts = -1;
+
+    HistConfig &setMaxPlotPts(int64_t val);
+
     void setIgnoreAmount(double const val);
 
     std::string title;
@@ -82,8 +89,44 @@ public:
         MedianAndIQR
     };
 
+    /**
+     * @brief extractName returns a string representing an Extract option
+     * @param e
+     * @return
+     */
+    static std::string extractName(Extract const e);
+
+    /**
+     * @brief extractName returns a string representing an Extract option + parameter
+     * @param e
+     * @return
+     */
+    static std::string extractName(std::pair<Extract, double> const e);
+
+    /**
+     * @brief str2extract finds the Extract value for a given string or throws an expcetion.
+     * @param s
+     * @return
+     */
+    static Extract str2extract(std::string s);
+
+    /**
+     * @brief extractors Set of extractors to be plotted in ThresholdErrorMean.
+     */
+    std::vector<std::pair<Extract, double> > extractors;
+
+    void addExtractors(std::vector<std::pair<Extract, double> > const& vec);
+
+    void addExtractors(std::vector<std::pair<std::string, double> > const& vec);
+
     Extract extract = Extract::Mean;
     double extractParam = .5;
+
+    /**
+     * @brief normalize_x if this is set to true then for each bin in y-direction the values in x-direction will be normalized.
+     */
+    bool normalize_x = false;
+    HistConfig& setNormalizeX(bool value = true);
 
     HistConfig& setMaxBins(int const nx, int const ny);
 
@@ -116,6 +159,28 @@ public:
 
     HistConfig clone() const;
 };
+
+template<class T>
+/**
+ * @brief The ThresholdErrorMean class collects pairs of values consisting of a confidence measure (larger is better)
+ * and an error measure (smaller is better) and creates plots to answer the question:
+ * If I discard pairs with a confidence lower than x, what is the mean error and what is the percentage of values dropped?
+ */
+class ThresholdErrorMean {
+public:
+    void push_unsafe(const T val, const T error);
+
+    void plot(std::string const& prefix, HistConfig const& conf = HistConfig()) const;
+
+    void save(std::ostream& out) const;
+    void save(std::string const& filename) const;
+
+    void load(std::istream &in);
+    void load(std::string const &filename);
+private:
+    mutable std::vector<std::pair<T, T> > data;
+};
+
 
 /**
  * @brief The BinaryStats class collects statistics about binary values.
@@ -480,6 +545,8 @@ public:
     std::string getSummary();
 
     void getSummary(std::ostream& out);
+
+    double getStat(HistConfig::Extract const type, double const param) const;
 
 private:
 

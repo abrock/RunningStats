@@ -37,6 +37,18 @@ TEST(Plot2D, Stats2D) {
 
 }
 
+TEST(Plot2D, Stats2Dnormalized) {
+    std::normal_distribution<double> dist;
+
+    runningstats::Stats2D<float> stats;
+
+    for (size_t ii = 0; ii < 1000*1000; ++ii) {
+        stats.push_unsafe(.1*dist(engine), dist(engine));
+    }
+    stats.plotHist("stats-normal-2d-normalized", stats.FreedmanDiaconisBinSize(),
+                   HistConfig().setNormalizeX().setLogCB());
+}
+
 TEST(Plot2D, Stats2Dlimited) {
     std::normal_distribution<double> dist;
 
