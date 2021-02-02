@@ -1,3 +1,5 @@
+#undef DNDEBUG
+#include <cassert>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -9,6 +11,9 @@
 #include "gnuplot-iostream.h"
 
 namespace runningstats {
+
+#define READ_BIN(in, data) (in.read(reinterpret_cast<char*>(&data), sizeof data))
+#define WRITE_BIN(out, data) {out.write(reinterpret_cast<const char*>(&data), sizeof data);}
 
 RunningStats::RunningStats() {}
 
@@ -63,11 +68,9 @@ void RunningStats::push(const double value) {
 }
 
 void RunningStats::push(const std::vector<double> &data) {
-#pragma omp critical
-    {
-        for (auto const val : data) {
-            push_unsafe(val);
-        }
+    std::lock_guard guard(push_mutex);
+    for (auto const val : data) {
+        push_unsafe(val);
     }
 }
 
@@ -87,7 +90,7 @@ void RunningStats::push_unsafe(const double value) {
         min = std::min(min, double(value));
         max = std::max(max, double(value));
 
-        double const newMean = mean + (value - mean) / n;
+        sum_type const newMean = mean + (value - mean) / n;
 
         varSum += (value - mean) * (value - newMean);
         mean = newMean;
@@ -256,10 +259,8 @@ T QuantileStats<T>::getMedian() const {
 
 template<class T>
 void QuantileStats<T>::push(const double value){
-#pragma omp critical
-    {
-        push_unsafe(value);
-    }
+    std::lock_guard guard(push_mutex);
+    push_unsafe(value);
 }
 
 template<class T>
@@ -285,11 +286,11 @@ T QuantileStats<T>::getQuantile(const double quantile) const {
     if (quantile >= 1) {
         return max;
     }
-    return getQuantile(quantile, values);
+    return getQuantile(quantile, values, sorted);
 }
 
 template<class T>
-T QuantileStats<T>::getQuantile(const double quantile, std::vector<T>& values)  {
+T QuantileStats<T>::getQuantile(const double quantile, std::vector<T>& values, bool & sorted)  {
     if (quantile <= 0) {
         return getMin(values);
     }
@@ -304,7 +305,11 @@ T QuantileStats<T>::getQuantile(const double quantile, std::vector<T>& values)  
     }
     //sort();
     size_t const n = static_cast<size_t>(quantile * (values.size()-1));
+    if (sorted) {
+        return values[n];
+    }
     std::nth_element(values.begin(), values.begin() + n, values.end());
+    sorted = false;
     return values[n];
 }
 
@@ -395,6 +400,43 @@ double QuantileStats<T>::getStat(const HistConfig::Extract type, const double pa
 }
 
 template<class T>
+double QuantileStats<T>::getStat(const std::pair<HistConfig::Extract, double> pair) const {
+    return getStat(pair.first, pair.second);
+}
+
+template<class T>
+void QuantileStats<T>::save(std::ostream &out) const {
+    std::lock_guard guard(push_mutex);
+    for (size_t ii = 0; ii < values.size(); ++ii) {
+        WRITE_BIN(out, values[ii]);
+    }
+}
+
+template<class T>
+void QuantileStats<T>::save(const std::string &filename) const {
+    std::ofstream out(filename);
+    save(out);
+}
+
+template<class T>
+void QuantileStats<T>::load(std::istream &in) {
+    std::lock_guard guard(push_mutex);
+    sorted = false;
+    while (in) {
+        T value = 0;
+        if (READ_BIN(in, value)) {
+            push_unsafe(value);
+        }
+    }
+}
+
+template<class T>
+void QuantileStats<T>::load(const std::string &filename) {
+    std::ifstream in(filename);
+    load(in);
+}
+
+template<class T>
 T QuantileStats<T>::getInverseQuantile(const double value) const {
     if (value <= min) {
         return 0;
@@ -413,6 +455,7 @@ T QuantileStats<T>::getInverseQuantile(const double value) const {
 template<class T>
 void QuantileStats<T>::sort() const {
     if (!sorted) {
+        std::lock_guard guard(push_mutex);
         std::sort(values.begin(), values.end());
         sorted = true;
     }
@@ -471,7 +514,11 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
 
     cmd << getXrange(conf);
 
-    cmd << "plot " << gpl.file(values, data_file) << " u 1:($0/" << (values.size()-1) << ") w l notitle; \n";
+    {
+        std::lock_guard guard(push_mutex);
+        cmd << "plot " << gpl.file(values, data_file) << " u 1:"
+            << (conf.absolute ? "0" : "($0/" + std::to_string(values.size()-1) + ")") << " w l notitle; \n";
+    }
     //cmd << "set term tikz; \n"
     //<< "set output \"" << prefix << ".tex\"; \n"
     //<< "replot;\n";
@@ -503,13 +550,25 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     if (!std::isfinite(reduced_range_factor) || reduced_range_factor < 1) {
         reduced_range_factor = 1;
     }
-    for (size_t ii = 0; ii < values.size(); ++ii) {
-        if (values[ii] >= current) {
-            plot_values.push_back({values[ii], float(ii)/(values.size()-1)});
-            current = min + ((max-min) * plot_values.size()) / (max_pts_CDF_plot * reduced_range_factor);
+    {
+        std::lock_guard guard(push_mutex);
+        for (size_t ii = 0; ii < values.size(); ++ii) {
+            if (values[ii] >= current) {
+                plot_values.push_back({values[ii], float(ii)/(conf.absolute ? 1 : values.size()-1)});
+                current = min + ((max-min) * plot_values.size()) / (max_pts_CDF_plot * reduced_range_factor);
+            }
         }
     }
-    plot_values.push_back({max, 1});
+    plot_values.push_back({max, conf.absolute ? values.size() : 1});
+    {
+        auto prev = plot_values.front();
+        for (size_t ii = 0; ii < plot_values.size(); ++ii) {
+            auto const& it = plot_values[ii];
+            assert(it.first >= prev.first);
+            assert(it.second >= prev.second);
+            prev = it;
+        }
+    }
 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
@@ -583,7 +642,6 @@ void QuantileStats<T>::reserve(const size_t size) {
 
 template<class T>
 std::vector<T> QuantileStats<T>::getData() {
-    sort();
     return values;
 }
 
@@ -797,30 +855,20 @@ bool Histogram::push(double value) {
     if (!std::isfinite(value)) {
         return false;
     }
-#pragma omp critical
-    {
-        push_unsafe(value);
-    }
+    std::lock_guard guard(push_mutex);
+    push_unsafe(value);
     return true;
 }
 
 
 bool Histogram::push_vector(const std::vector<double> &values) {
-    bool result = true;
-#pragma omp critical
-    {
-        result = push_vector_unsafe(values);
-    }
-    return result;
+    std::lock_guard guard(push_mutex);
+    return push_vector_unsafe(values);
 }
 
 bool Histogram::push_vector(const std::vector<float> &values) {
-    bool result = true;
-#pragma omp critical
-    {
-        result = push_vector_unsafe(values);
-    }
-    return result;
+    std::lock_guard guard(push_mutex);
+    return push_vector_unsafe(values);
 }
 
 bool Histogram::push_unsafe(const double value) {
@@ -974,10 +1022,8 @@ std::string Histogram::getXrange(const HistConfig &conf) const {
 template<class T>
 template<class U>
 void QuantileStats<T>::push(const std::vector<U> &values) {
-#pragma omp critical
-    {
-        push_unsafe(values);
-    }
+    std::lock_guard guard(push_mutex);
+    push_unsafe(values);
 }
 
 template<class T>
@@ -1159,7 +1205,10 @@ std::vector<std::pair<T, T> > Stats2D<T>::getData() const {
 }
 
 template<class T>
-void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, double> bin_size, const HistConfig &conf) const {
+void Stats2D<T>::plotHist(const std::string prefix, std::pair<double, double> bin_size, const HistConfig &conf) const {
+    if (bin_size.first <= 0 || bin_size.second <= 0) {
+        bin_size = FreedmanDiaconisBinSize();
+    }
     double bin_x = bin_size.first;
     double const range_x = (quantiles_1.getMax() - quantiles_1.getMin());
     double const n_x = range_x / bin_x;
@@ -1174,7 +1223,7 @@ void Stats2D<T>::plotHist(const std::string prefix, const std::pair<double, doub
         bin_y = range_y / conf.max_ny;
     }
 
-    getHistogram2Dfixed({bin_x, bin_y}, conf).plotHist(prefix, conf);
+    getHistogram2Dfixed({bin_x, bin_y}, conf).plotHistPm3D(prefix, conf);
 }
 
 template<class T>
@@ -1290,6 +1339,7 @@ Histogram2Dfixed::Histogram2Dfixed(
     data = std::vector<std::vector<size_t>>
                                             (std::ceil(range_1 / width_1)+1,
                                              std::vector<size_t>(std::ceil(range_2 / width_2)+1, 0));
+    stats_per_column = std::vector<QuantileStats<float> >(std::ceil(range_1 / width_1)+1);
 }
 
 Histogram2Dfixed::Histogram2Dfixed(const Histogram2Dfixed &rhs):
@@ -1300,8 +1350,9 @@ Histogram2Dfixed::Histogram2Dfixed(const Histogram2Dfixed &rhs):
     max_1(rhs.max_1),
     max_2(rhs.max_2),
     data(rhs.data),
-    total_count(rhs.total_count) {
-}
+    stats_per_column(rhs.stats_per_column),
+    total_count(rhs.total_count)
+{}
 
 Histogram2Dfixed::~Histogram2Dfixed() {
     data.clear();
@@ -1322,9 +1373,10 @@ bool Histogram2Dfixed::push_unsafe(const double val1, const double val2) {
     if (!std::isfinite(val1) || !std::isfinite(val2) || val1 < min_1 || val1 > max_1 || val2 < min_2 || val2 > max_2) {
         return false;
     }
-    size_t const row = std::round((val1 - min_1) / width_1);
-    size_t const col = std::round((val2 - min_2) / width_2);
-    data[row][col]++;
+    size_t const col = std::round((val1 - min_1) / width_1);
+    size_t const row = std::round((val2 - min_2) / width_2);
+    data[col][row]++;
+    stats_per_column[col].push_unsafe(val2);
     total_count++;
     return true;
 }
@@ -1368,8 +1420,8 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString();
-    cmd << "set xrange[" << min_1 - (range_1_empty ? 1:0) << " : " << max_1 + (range_1_empty ? 1:0) << "];\n";
-    cmd << "set yrange[" << min_2 - (range_2_empty ? 1:0) << " : " << max_2 + (range_2_empty ? 1:0) << "];\n";
+    cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
+    cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
@@ -1383,6 +1435,100 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     cmd_out << cmd.str();
     cmd_out.close();
     gnuplotio::Gnuplot plt;
+    plt << cmd.str();
+}
+
+void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &conf) const {
+    std::string const data_file = prefix + ".data";
+    std::ofstream data_out(data_file);
+    if (conf.normalize_x) {
+        size_t col_sum = 0;
+        for (size_t col = 0; col < data.size(); ++col) {
+            std::vector<size_t> const& col_data = data[col];
+            col_sum = 0;
+            for (size_t row = 0; row < col_data.size(); ++row) {
+                col_sum += col_data[row];
+            }
+            if (col_sum < 20) {
+                col_sum = 20;
+            }
+            double const row_bin = width_1 * col + min_1 - width_1/2;
+            for (size_t row = 0; row < col_data.size(); ++row) {
+                double const col_bin = width_2 * row + min_2 - width_2/2;
+                data_out << row_bin << "\t" << col_bin << "\t" << (double(col_data[row]) / (col_sum * width_1 * width_2)) << std::endl;
+            }
+            data_out << row_bin << "\t" << width_2 * col_data.size() + min_2 - width_2/2
+                     << "\t" << (double(col_data.back()) / (col_sum * width_1 * width_2)) << std::endl;
+            data_out << std::endl;
+        }
+        auto const& col_data = data.back();
+        double const col_bin = width_1 * data.size() + min_1 - width_1/2;
+        for (size_t row = 0; row < col_data.size(); ++row) {
+            double const row_bin = width_2 * row + min_2 - width_2/2;
+            data_out << col_bin << "\t" << row_bin << "\t" << (double(col_data[row]) / (col_sum * width_1 * width_2)) << std::endl;
+        }
+        data_out << col_bin << "\t" << width_2 * col_data.size() + min_2 - width_2/2
+                 << "\t" << (double(col_data.back()) / (col_sum * width_1 * width_2)) << std::endl;
+        data_out << std::endl;
+    }
+    else {
+        std::string row_text;
+        for (size_t row = 0; row < data.size(); ++row) {
+            std::vector<size_t> const& row_data = data[row];
+            double const row_bin = width_1 * row + min_1 - width_1/2;
+            for (size_t col = 0; col < row_data.size(); ++col) {
+                double const col_bin = width_2 * col + min_2 - width_2/2;
+                data_out << row_bin << "\t" << col_bin << "\t" << (conf.absolute ? row_data[col] : double(row_data[col]) / (total_count * width_1 * width_2)) << std::endl;
+            }
+            data_out << row_bin << "\t" << width_2 * row_data.size() + min_2 - width_2/2 << "\t" << (conf.absolute ? row_data.back() : double(row_data.back()) / (total_count * width_1 * width_2)) << std::endl;
+            data_out << std::endl;
+        }
+        std::vector<size_t> const& row_data = data.back();
+        double const row_bin = width_1 * data.size() + min_1 - width_1/2;
+        for (size_t col = 0; col < row_data.size(); ++col) {
+            double const col_bin = width_2 * col + min_2 - width_2/2;
+            data_out << row_bin << "\t" << col_bin << "\t" << (conf.absolute ? row_data[col] : double(row_data[col]) / (total_count * width_1 * width_2)) << std::endl;
+        }
+        data_out << row_bin << "\t" << width_2 * row_data.size() + min_2 - width_2/2 << "\t" << (conf.absolute ? row_data.back() : double(row_data.back()) / (total_count * width_1 * width_2)) << std::endl;
+        data_out << std::endl;
+    }
+    std::stringstream cmd;
+    gnuplotio::Gnuplot plt;
+    bool const range_1_empty = (min_1 == max_1);
+    bool const range_2_empty = (min_2 == max_2);
+    cmd << "#!/usr/bin/gnuplot \n";
+    cmd << "set term svg enhanced background rgb 'white';\n";
+    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << conf.toString();
+    cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
+    cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
+    cmd << "set key outside horiz;\n";
+    cmd << "set xtics out;\n";
+    cmd << "set ytics out;\n";
+    cmd << "set view map;\n";
+    cmd << "set pm3d corners2color c1;\n";
+    cmd << "splot '" << data_file << "' u 1:2:3 with pm3d notitle";
+    for (std::pair<HistConfig::Extract, double> const& extractor : conf.extractors) {
+        std::vector<std::pair<double, double> > data_out;
+        data_out.reserve(data.size());
+        for (size_t col = 0; col < data.size(); ++col) {
+            QuantileStats<float> const& col_data = stats_per_column[col];
+            double const row_bin = width_1 * col + min_1;
+            data_out.push_back({row_bin, col_data.getStat(extractor.first, extractor.second)});
+        }
+        std::string extract_name = HistConfig::extractName(extractor);
+        cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l title '" << extract_name << "'";
+    }
+    cmd << ";\n";
+    //cmd << "set term png;\n";
+    //cmd << "set output '" << prefix << ".png';\n";
+    //cmd << "replot;\n";
+    //cmd << "set term tikz;\n";
+    //cmd << "set output '" << prefix << ".tex';\n";
+    //cmd << "replot;\n";
+    std::ofstream cmd_out(prefix + ".gpl");
+    cmd_out << cmd.str();
+    cmd_out.close();
     plt << cmd.str();
 }
 
@@ -1409,8 +1555,9 @@ HistConfig& HistConfig::setMaxPlotPts(int64_t val) {
     return *this;
 }
 
-void HistConfig::setIgnoreAmount(const double val) {
+HistConfig &HistConfig::setIgnoreAmount(const double val) {
     ignore_amount = std::min(1.0, std::max(0.0, val));
+    return *this;
 }
 
 std::string HistConfig::toString() const {
@@ -1455,7 +1602,19 @@ std::string HistConfig::extractName(const HistConfig::Extract e) {
 }
 
 std::string HistConfig::extractName(const std::pair<HistConfig::Extract, double> e) {
-    return extractName(e.first) + "-" + std::to_string(e.second);
+    switch (e.first) {
+    case Extract::Mean : return extractName(e.first);
+    case Extract::Median : return extractName(e.first);
+    case Extract::Stddev : return extractName(e.first);
+    case Extract::Variance : return extractName(e.first);
+    default: break;
+    }
+    std::string result = extractName(e.first) + "-" + std::to_string(e.second);
+    size_t pos = result.size()-1;
+    while (result[pos-1] == '0') {
+        pos--;
+    }
+    return result.substr(0, pos);
 }
 
 HistConfig::Extract HistConfig::str2extract(std::string s) {
@@ -1471,14 +1630,21 @@ HistConfig::Extract HistConfig::str2extract(std::string s) {
     throw std::runtime_error("Unknown extract string");
 }
 
-void HistConfig::addExtractors(const std::vector<std::pair<std::string, double> > &vec) {
+HistConfig& HistConfig::addExtractors(const std::vector<std::pair<std::string, double> > &vec) {
     for (auto const& it : vec) {
         addExtractors({{str2extract(it.first), it.second}});
     }
+    return *this;
 }
 
-void HistConfig::addExtractors(const std::vector<std::pair<HistConfig::Extract, double> > & vec) {
+HistConfig &HistConfig::addExtractors(const std::vector<std::pair<HistConfig::Extract, double> > & vec) {
     extractors.insert(extractors.end(), vec.begin(), vec.end());
+    return *this;
+}
+
+HistConfig &HistConfig::setExtractors(const std::vector<std::pair<HistConfig::Extract, double> > &vec) {
+    extractors = vec;
+    return *this;
 }
 
 HistConfig &HistConfig::setNormalizeX(bool value) {
@@ -2056,7 +2222,15 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     if (data.size() < 2) {
         return;
     }
+    std::lock_guard guard(access_lock);
+    std::vector<T> only_errors;
+    only_errors.reserve(data.size());
+    for (size_t ii = 0; ii < data.size(); ++ii) {
+        only_errors.push_back(data[ii].second);
+    }
     std::sort(data.begin(), data.end());
+    std::sort(only_errors.begin(), only_errors.end());
+
     std::vector<std::pair<HistConfig::Extract, double> > extractors = conf.extractors;
     if (extractors.empty()) {
         extractors.push_back({conf.extract, conf.extractParam});
@@ -2090,38 +2264,62 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     cmd2 << "set y2tics;\n set ytics nomirror;\n";
     cmd2 << "plot ";
 
+
+    bool first_extract = true;
+
     std::vector<std::pair<T, T> >
             error_over_threshold, percentage_over_threshold,
-            error_over_percentage, threshold_over_percentage;
+            error_over_percentage, error_over_percentage_oracle, threshold_over_percentage;
     for (std::pair<HistConfig::Extract, double> const& extractor : extractors) {
         error_over_threshold.clear();
         percentage_over_threshold.clear();
         error_over_percentage.clear();
         threshold_over_percentage.clear();
-        QuantileStats<T> error_stats;
-        size_t counter = 0;
-        for (auto const& it : data) {
-            ++counter;
+        error_over_percentage_oracle.clear();
+        QuantileStats<T> error_stats, oracle_stats;
+        for (size_t ii = 0; ii < data.size(); ++ii) {
+            auto const& it = data[ii];
+            oracle_stats.push_unsafe(only_errors[ii]);
             error_stats.push_unsafe(it.second);
             if (conf.max_plot_pts <= 0
                     || conf.max_plot_pts >= int64_t(data.size())
-                    || double(counter) * (double(conf.max_plot_pts) / data.size()) >= error_over_threshold.size()) {
+                    || double(ii) * (double(conf.max_plot_pts) / data.size()) >= error_over_threshold.size()) {
                 double const error = error_stats.getStat(extractor.first, extractor.second);
+                double const oracle_error = oracle_stats.getStat(extractor.first, extractor.second);
                 double const threshold = it.first;
-                double const percentage = 100.0*double(counter) / double(data.size());
+                double const percentage = 100.0*double(ii) / double(data.size());
                 error_over_threshold.push_back({threshold, error});
                 percentage_over_threshold.push_back({threshold, percentage});
                 error_over_percentage.push_back({percentage, error});
+                error_over_percentage_oracle.push_back({percentage, oracle_error});
                 threshold_over_percentage.push_back({percentage, threshold});
             }
         }
+        double const error = error_stats.getStat(extractor.first, extractor.second);
+        double const threshold = data.rbegin()->first;
+        double const percentage = 100.0;
+        error_over_threshold.push_back({threshold, error});
+        percentage_over_threshold.push_back({threshold, percentage});
+        error_over_percentage.push_back({percentage, error});
+        threshold_over_percentage.push_back({percentage, threshold});
         std::string const extractName = conf.extractName(extractor);
-        error_over_threshold.push_back({data.rbegin()->first, error_stats.getMean()});
         cmd1 << plt1.file(error_over_threshold, error_file1 + extractName + ".data")
              << " u 1:2 with l title 'error " << extractName << "', ";
         cmd2 << plt2.file(error_over_percentage, error_file2 + extractName + ".data")
              << " u 1:2 with l title 'error " << extractName << "',";
+        cmd2 << plt2.file(error_over_percentage_oracle, error_file2 + extractName + "-oracle.data")
+             << " u 1:2 with l title 'oracle " << extractName << "',";
+
+        if (first_extract) {
+            std::cout << "Error stats: " << error_stats.print() << std::endl;
+            error_stats.plotHistAndCDF(prefix + "-errors", -1, HistConfig()
+                                       .setMaxPlotPts(1000)
+                                       .setMaxBins(1000,1000)
+                                       .setDataLabel("Errors"));
+        }
+        first_extract = false;
     }
+
     cmd1 << plt1.file(percentage_over_threshold, percentage_file1) << " u 1:2 axes x1y2 w l title 'percentage';\n";
     cmd1 << "set term png;\n";
     cmd1 << "set output '" << prefix << "-error.png';\n";
@@ -2140,11 +2338,9 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
 
 }
 
-#define READ_BIN(in, data) (in.read(reinterpret_cast<char*>(&data), sizeof data))
-#define WRITE_BIN(out, data) {out.write(reinterpret_cast<const char*>(&data), sizeof data);}
-
 template<class T>
 void ThresholdErrorMean<T>::save(std::ostream &out) const {
+    std::lock_guard guard(access_lock);
     for (auto const& it : data) {
         WRITE_BIN(out, it.first);
         WRITE_BIN(out, it.second);
@@ -2159,6 +2355,7 @@ void ThresholdErrorMean<T>::save(const std::string &filename) const {
 
 template<class T>
 void ThresholdErrorMean<T>::load(std::istream &in) {
+    std::lock_guard guard(access_lock);
     while (in) {
         T x = 0, y = 0;
         if (!READ_BIN(in, x)) {
@@ -2175,6 +2372,16 @@ template<class T>
 void ThresholdErrorMean<T>::load(const std::string &filename) {
     std::ifstream in(filename);
     load(in);
+}
+
+template<class T>
+size_t ThresholdErrorMean<T>::size() const {
+    return data.size();
+}
+
+template<class T>
+std::vector<std::pair<T, T> > ThresholdErrorMean<T>::getData() const {
+    return data;
 }
 
 template class ThresholdErrorMean<float>;

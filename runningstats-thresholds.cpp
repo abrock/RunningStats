@@ -19,10 +19,9 @@ int main(int argc, char ** argv) {
     conf.setMaxPlotPts(200);
     conf.addExtractors({
                            {"Mean", 0.5},
-                           {"Median", 0.5},
+                           {"Quantile", 0.5},
                            {"Quantile", 0.75},
                            {"Quantile", 0.90},
-                           {"Quantile", 0.95}
                        });
 
     stats.plot(filename + "-plot", conf);

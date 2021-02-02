@@ -7,6 +7,8 @@
 
 using namespace runningstats;
 
+#include "randutils.hpp"
+
 static std::random_device dev;
 static std::mt19937 engine(dev());
 
@@ -34,6 +36,33 @@ TEST(Plot2D, Stats2D) {
 
     runningstats::Histogram2D hist = stats.getHistogram2D(stats.FreedmanDiaconisBinSize());
     hist.plotHist("stats-normal-2d", false);
+
+}
+
+TEST(Plot2D, LaplaceHist) {
+    std::normal_distribution<double> dist;
+
+    runningstats::Stats2D<float> stats;
+
+    randutils::mt19937_rng rng;
+
+    for (size_t ii = 0; ii < 1'000'000; ++ii) {
+        float const v1 = rng.variate<float, std::uniform_real_distribution>(-1,1);
+        stats.push_unsafe(
+                    v1,
+                    v1+rng.variate<float, std::uniform_real_distribution>(-.1,.1)
+                    );
+    }
+    std::pair<double, double> bin = {.01, .01};
+    stats.plotHist("plot2d-laplace", bin);
+    stats.getHistogram2Dfixed(bin).plotHistPm3D("plot2d-laplace-pm3d");
+    stats.getHistogram2Dfixed(bin)
+            .plotHistPm3D("plot2d-laplace-pm3d-normalized",
+                          HistConfig()
+                          .setNormalizeX()
+                          .addExtractors({{HistConfig::Extract::Mean, 0},
+                                         {HistConfig::Extract::Quantile, 0.75},
+                                         {HistConfig::Extract::Quantile, 0.25}}));
 
 }
 

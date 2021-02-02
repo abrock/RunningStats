@@ -20,6 +20,8 @@ add_executable(test-runningstats
     subteststatsnd.cpp
     subtest_weighted_runningstats.cpp
     subtest_threshold_error_mean.cpp
+    subtest_precision.cpp
+    subtest_quantilestats.cpp
     )
 
 foreach(executable test-runningstats test-2d test-knuth)

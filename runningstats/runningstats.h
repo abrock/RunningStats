@@ -11,6 +11,8 @@
 
 #include <mutex>
 
+#include <boost/multiprecision/float128.hpp>
+
 namespace runningstats {
 
 class HistConfig {
@@ -64,7 +66,7 @@ public:
 
     HistConfig &setMaxPlotPts(int64_t val);
 
-    void setIgnoreAmount(double const val);
+    HistConfig & setIgnoreAmount(double const val);
 
     std::string title;
 
@@ -115,9 +117,10 @@ public:
      */
     std::vector<std::pair<Extract, double> > extractors;
 
-    void addExtractors(std::vector<std::pair<Extract, double> > const& vec);
+    HistConfig& addExtractors(std::vector<std::pair<Extract, double> > const& vec);
+    HistConfig& setExtractors(std::vector<std::pair<Extract, double> > const& vec);
 
-    void addExtractors(std::vector<std::pair<std::string, double> > const& vec);
+    HistConfig& addExtractors(std::vector<std::pair<std::string, double> > const& vec);
 
     Extract extract = Extract::Mean;
     double extractParam = .5;
@@ -177,7 +180,12 @@ public:
 
     void load(std::istream &in);
     void load(std::string const &filename);
+
+    size_t size() const;
+
+    std::vector<std::pair<T, T> > getData() const;
 private:
+    mutable std::mutex access_lock;
     mutable std::vector<std::pair<T, T> > data;
 };
 
@@ -286,8 +294,8 @@ public:
 
 class RunningStats {
 
-private:
-    std::mutex push_mutex;
+protected:
+    mutable std::mutex push_mutex;
 
 public:
 
@@ -357,14 +365,16 @@ public:
 
     std::string printBoth() const;
 
-    double sum = 0;
-    double squaresum = 0;
+    typedef double sum_type;
+
+    sum_type sum = 0;
+    sum_type squaresum = 0;
     double min = 0;
     double max = 0;
     size_t n = 0;
 
-    double mean = 0;
-    double varSum = 0;
+    sum_type mean = 0;
+    sum_type varSum = 0;
 
     bool calcLog = true;
 
@@ -435,6 +445,9 @@ public:
     void plotHist(std::string const prefix, bool const absolute = true) const;
 };
 
+template<class T>
+class QuantileStats;
+
 class Histogram2Dfixed {
     double const width_1;
     double const width_2;
@@ -445,6 +458,7 @@ class Histogram2Dfixed {
      * @brief data Bin counts can be addressed as data[row][col];
      */
     std::vector<std::vector<size_t> > data;
+    std::vector<QuantileStats<float> > stats_per_column;
 
     std::mutex push_mutex;
 
@@ -466,7 +480,9 @@ public:
     bool push_unsafe(double const val1, double const val2);
 
     void plotHist(std::string const prefix, const bool absolute = true) const;
-    void plotHist(std::string const prefix, const HistConfig &conf) const;
+    void plotHist(std::string const prefix, const HistConfig &conf = HistConfig()) const;
+
+    void plotHistPm3D(std::string const prefix, const HistConfig &conf = HistConfig()) const;
 };
 
 
@@ -528,7 +544,7 @@ public:
 
     double FreedmanDiaconisBinSize() const;
 
-    static T getQuantile(const double quantile, std::vector<T> &values);
+    static T getQuantile(const double quantile, std::vector<T> &values, bool &sorted);
 
     static double getMin(const std::vector<T> &values);
     static double getMax(const std::vector<T> &values);
@@ -547,6 +563,13 @@ public:
     void getSummary(std::ostream& out);
 
     double getStat(HistConfig::Extract const type, double const param) const;
+    double getStat(const std::pair<HistConfig::Extract, double> pair) const;
+
+    void save(std::ostream &out) const;
+    void save(std::string const& filename) const;
+
+    void load(std::istream &in);
+    void load(std::string const & filename);
 
 private:
 
@@ -606,7 +629,7 @@ public:
 
     void sort() const;
 
-    void plotHist(std::string const prefix, std::pair<double, double> const bin_size, const HistConfig &conf) const;
+    void plotHist(std::string const prefix, std::pair<double, double> bin_size = {-1,-1}, const HistConfig &conf = HistConfig()) const;
 
     void saveSummary(std::string const & filename);
 
@@ -627,6 +650,7 @@ public:
 
     std::tuple<double, double, double, double> getQuantileEllipse(double const ignore) const;
     void getQuantileEllipse(Ellipses& ellipse, double const ignore) const;
+
 private:
 
     mutable std::vector<std::pair<T, T>> values;
