@@ -715,6 +715,24 @@ void RunningCovariance::push_unsafe(double x, double y)
     }
 }
 
+RunningCovariance::RunningCovariance() {}
+
+RunningCovariance::RunningCovariance(const RunningCovariance &rhs) {
+    *this = rhs;
+}
+
+RunningCovariance &RunningCovariance::operator=(const RunningCovariance &other) {
+    n = other.n;
+    minX = other.minX;
+    maxX = other.maxX;
+    minY = other.minY;
+    maxY = other.maxY;
+    varSumX = other.varSumX;
+    varSumY = other.varSumY;
+    covarSum = other.covarSum;
+    return *this;
+}
+
 void RunningCovariance::push(double x, double y) {
     std::lock_guard<std::mutex> const guard(push_mutex);
     push_unsafe(x, y);

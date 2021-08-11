@@ -482,6 +482,19 @@ TEST(Ellipses, plot) {
                   .setYLabel("Y label"));
 }
 
+TEST(All, CopyConstructors) {
+    {
+        runningstats::BinaryStats a;
+        BinaryStats b = a;
+        b.pushFalse(2);
+    }
+    {
+        RunningCovariance a;
+        RunningCovariance b = a;
+        b.push_unsafe(0,0);
+    }
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;

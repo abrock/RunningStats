@@ -261,6 +261,12 @@ public:
 
     void printInfo();
     void push_unsafe(double x, double y);
+
+    RunningCovariance();
+
+    RunningCovariance(RunningCovariance const& rhs);
+    RunningCovariance & operator= ( const RunningCovariance & other);
+
 };
 
 class WeightedRunningStats {
