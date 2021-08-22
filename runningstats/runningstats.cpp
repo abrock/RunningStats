@@ -1743,6 +1743,16 @@ HistConfig &HistConfig::setFixedRatio(const bool val) {
     return *this;
 }
 
+HistConfig &HistConfig::setFlipX(const bool val) {
+    flip_x = val;
+    return *this;
+}
+
+HistConfig &HistConfig::setFlipY(const bool val) {
+    flip_y = val;
+    return *this;
+}
+
 HistConfig &HistConfig::setTitle(const std::string val) {
     title = val;
     return *this;
@@ -1907,8 +1917,18 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     cmd << "set term svg enhanced background rgb 'white';\n";
     cmd << "set output '" << prefix << ".svg';\n";
     cmd << conf.toString() << "\n";
-    cmd << "set xrange[" << min_x - width1/2 << ":" << max_x + width1/2 << "]; \n";
-    cmd << "set yrange[" << min_y - width2/2 << ":" << max_y + width2/2 << "]; \n";
+    if (conf.flip_x) {
+        cmd << "set xrange[" << max_x + width1/2 << ":" << min_x - width1/2 << "]; \n";
+    }
+    else {
+        cmd << "set xrange[" << min_x - width1/2 << ":" << max_x + width1/2 << "]; \n";
+    }
+    if (conf.flip_y) {
+        cmd << "set yrange[" << max_y + width2/2 << ":" << min_y - width2/2 << "]; \n";
+    }
+    else {
+        cmd << "set yrange[" << min_y - width2/2 << ":" << max_y + width2/2 << "]; \n";
+    }
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";

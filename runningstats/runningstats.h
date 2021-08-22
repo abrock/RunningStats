@@ -42,6 +42,16 @@ public:
      */
     bool fixedRatio = false;
 
+    /**
+     * @brief flip_x tells Image2D to reverse the direction of the x-axis.
+     */
+    bool flip_x = false;
+
+    /**
+     * @brief flip_y tells Image2D to reverse the direction of the y-axis.
+     */
+    bool flip_y = false;
+
     double min_x = -std::numeric_limits<double>::max();
     double max_x = std::numeric_limits<double>::max();
 
@@ -151,6 +161,8 @@ public:
     HistConfig& setAbsolute(bool const val = true);
     HistConfig& setRelative(bool const val = true);
     HistConfig& setFixedRatio(bool const val = true);
+    HistConfig& setFlipX(bool const val = true);
+    HistConfig& setFlipY(bool const val = true);
 
     HistConfig& setTitle(std::string const val);
     HistConfig& setXLabel(std::string const val);
