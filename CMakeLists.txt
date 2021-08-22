@@ -19,7 +19,7 @@ add_subdirectory(test)
 # Install targets
 include(${CMAKE_SOURCE_DIR}/cmake/InstallConfig.cmake)
 
-foreach(PROGRAM runningstats-autohist runningstats-print runningstats-thresholds)
+foreach(PROGRAM runningstats-autohist runningstats-print runningstats-thresholds runningstats-get-median)
 add_executable(${PROGRAM} ${PROGRAM}.cpp)
 
 target_link_libraries(${PROGRAM}
