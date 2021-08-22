@@ -1352,8 +1352,8 @@ Histogram2Dfixed::Histogram2Dfixed(
     min_2(_min_2),
     max_1(_max_1),
     max_2(_max_2){
-    double const range_1 = max_1 - min_1;
-    double const range_2 = max_2 - min_2;
+    double const range_1 = std::abs(max_1 - min_1);
+    double const range_2 = std::abs(max_2 - min_2);
     data = std::vector<std::vector<size_t>>
                                             (std::ceil(range_1 / width_1)+1,
                                              std::vector<size_t>(std::ceil(range_2 / width_2)+1, 0));
