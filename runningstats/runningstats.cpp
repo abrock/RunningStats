@@ -2024,6 +2024,7 @@ template class Image1D<double>;
 template class Image1D<RunningStats>;
 template class Image1D<QuantileStats<float> >;
 template class Image2D<double>;
+template class Image2D<float>;
 template class Image2D<size_t>;
 template class Image2D<RunningStats>;
 template class Image2D<QuantileStats<float> >;
