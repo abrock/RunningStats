@@ -479,6 +479,11 @@ void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size,
 }
 
 template<class T>
+void QuantileStats<T>::plotHist(const std::string prefix, HistConfig conf) const {
+    plotHist(prefix, FreedmanDiaconisBinSize(), conf);
+}
+
+template<class T>
 void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, const bool absolute) const {
     double const _bin_size = bin_size > 0 ? bin_size : FreedmanDiaconisBinSize();
     Histogram h(_bin_size);
@@ -609,6 +614,11 @@ template<class T>
 void QuantileStats<T>::plotHistAndCDF(const std::string prefix, const double bin_size, HistConfig conf) const {
     plotHist(prefix + "-hist", bin_size, conf);
     plotCDF(prefix + "-cdf", conf);
+}
+
+template<class T>
+void QuantileStats<T>::plotHistAndCDF(const std::string prefix, HistConfig conf) const {
+    plotHistAndCDF(prefix, FreedmanDiaconisBinSize(), conf);
 }
 
 template<class T>
