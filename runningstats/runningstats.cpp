@@ -659,6 +659,12 @@ std::vector<T> QuantileStats<T>::getData() {
 }
 
 template<class T>
+void QuantileStats<T>::clear() {
+    values.clear();
+    RunningStats::clear();
+}
+
+template<class T>
 double QuantileStats<T>::getTrimmedMean(const T & ignore) const {
     if (ignore <= 0) {
         return getMean();
@@ -851,6 +857,11 @@ std::string BinaryStats::print() const {
         << "False: " << getFalseCount() << " (" << getFalsePercent() << "%), "
         << "Total: " << getTotalCount();
     return out.str();
+}
+
+void BinaryStats::clear() {
+    count_total = 0;
+    count_true = 0;
 }
 
 size_t BinaryStats::getTotalCount() const {

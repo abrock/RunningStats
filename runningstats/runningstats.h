@@ -234,6 +234,8 @@ public:
     size_t getFalseCount() const;
 
     std::string print() const;
+
+    void clear();
 };
 
 class RunningCovariance {
@@ -532,6 +534,8 @@ public:
     void reserve(const size_t size);
 
     std::vector<T> getData();
+
+    void clear();
 
     /**
      * @brief getTrimmedMean calculates the mean of the central part of the data, ignoring top and bottom outliers.
