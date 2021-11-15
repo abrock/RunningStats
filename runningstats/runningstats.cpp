@@ -469,6 +469,9 @@ void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size,
     if (std::isfinite(n_x) && conf.max_nx > 0 && conf.max_nx < n_x) {
         _bin_size = x_range / conf.max_nx;
     }
+    if (x_range / _bin_size > conf.max_plot_pts) {
+        _bin_size = x_range / conf.max_plot_pts;
+    }
     Histogram h(_bin_size);
     h.push_vector_unsafe(values);
     setRangeByIgnoreAmount(conf);
