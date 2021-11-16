@@ -132,6 +132,8 @@ public:
 
     HistConfig& addExtractors(std::vector<std::pair<std::string, double> > const& vec);
 
+    HistConfig& addCommand(std::string const& cmd);
+
     Extract extract = Extract::Mean;
     double extractParam = .5;
 

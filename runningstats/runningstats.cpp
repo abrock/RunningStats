@@ -1679,6 +1679,11 @@ HistConfig& HistConfig::addExtractors(const std::vector<std::pair<std::string, d
     return *this;
 }
 
+HistConfig &HistConfig::addCommand(const std::string &cmd) {
+    misc += ";\n" + cmd + ";\n";
+    return *this;
+}
+
 HistConfig &HistConfig::addExtractors(const std::vector<std::pair<HistConfig::Extract, double> > & vec) {
     extractors.insert(extractors.end(), vec.begin(), vec.end());
     return *this;
