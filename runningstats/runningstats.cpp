@@ -15,6 +15,24 @@ namespace runningstats {
 #define READ_BIN(in, data) (in.read(reinterpret_cast<char*>(&data), sizeof data))
 #define WRITE_BIN(out, data) {out.write(reinterpret_cast<const char*>(&data), sizeof data);}
 
+std::string tostring(int64_t n) {
+    std::string result = std::to_string(n);
+    if (result.size() < 4) {
+        return result;
+    }
+    std::string _res;
+    _res += result[0];
+    for (size_t ii = 1; ii < result.size(); ++ii) {
+        if (ii+1 < result.size()) {
+            if ((result.size() - ii) % 3 == 0) {
+                _res += '\'';
+            }
+        }
+        _res += result[ii];
+    }
+    return _res;
+}
+
 RunningStats::RunningStats() {}
 
 RunningStats::RunningStats(const RunningStats &rhs) :
@@ -511,14 +529,14 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     std::string data_file = prefix + ".data";
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n"
-        << "set output \"" << prefix + ".png\"; \n"
+        << "set output '" << prefix + ".png'; \n"
         << conf.toString()
-        << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\";\n";
+        << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
 
     if (!conf.dataLabel.empty()) {
-        cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
+        cmd << "set xlabel '" << escape(conf.dataLabel) << "';\n";
     }
-    cmd << "set ylabel \"Estimated CDF\";\n";
+    cmd << "set ylabel 'Estimated CDF';\n";
 
 
     cmd << getXrange(conf);
@@ -529,7 +547,7 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
             << (conf.absolute ? "0" : "($0/" + std::to_string(values.size()-1) + ")") << " w l notitle; \n";
     }
     //cmd << "set term tikz; \n"
-    //<< "set output \"" << prefix << ".tex\"; \n"
+    //<< "set output '" << prefix << ".tex'; \n"
     //<< "replot;\n";
     cmd << conf.generateFormatCommands(prefix);
 
@@ -585,20 +603,20 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     std::string data_file = prefix + ".data";
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n"
-        << "set output \"" << prefix + ".png\"; \n"
+        << "set output '" << prefix + ".png'; \n"
         << conf.toString()
-        << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\";\n";
+        << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
 
     if (!conf.dataLabel.empty()) {
-        cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
+        cmd << "set xlabel '" << escape(conf.dataLabel) << "';\n";
     }
-    cmd << "set ylabel \"Estimated CDF\";\n";
+    cmd << "set ylabel 'Estimated CDF';\n";
 
     cmd << getXrange(conf);
 
     cmd << "plot " << gpl.file(plot_values, data_file) << " u 1:2 w l notitle; \n";
     //cmd << "set term tikz; \n"
-    // << "set output \"" << prefix << ".tex\"; \n"
+    // << "set output '" << prefix << ".tex'; \n"
     // << "replot;\n";
     cmd << conf.generateFormatCommands(prefix);
 
@@ -991,13 +1009,13 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
 
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n";
-    cmd << "set output \"" << prefix + ".png\"; \n";
+    cmd << "set output '" << prefix + ".png'; \n";
     cmd << conf.toString();
-    cmd << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\";\n";
+    cmd << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
     if (!conf.dataLabel.empty()) {
-        cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
+        cmd << "set xlabel '" << escape(conf.dataLabel) << "';\n";
     }
-    cmd << "set ylabel \"Estimated PDF\";\n";
+    cmd << "set ylabel 'Estimated PDF';\n";
 
     cmd << getXrange(conf);
 
@@ -1005,7 +1023,7 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
 
     cmd << "plot " << gpl.file1d(data, data_file) << " w boxes notitle; \n";
     //cmd << "set term tikz; \n";
-    //cmd << "set output \"" << prefix << ".tex\"; \n";
+    //cmd << "set output '" << prefix << ".tex'; \n";
     //cmd << "replot;\n";
     cmd << conf.generateFormatCommands(prefix);
 
@@ -1620,13 +1638,13 @@ std::string HistConfig::toString() const {
         out << "set logscale y;\n";
     }
     if (!xLabel.empty()) {
-        out << "set xlabel '" << xLabel << "';\n";
+        out << "set xlabel '" << escape(xLabel) << "';\n";
     }
     if (!yLabel.empty()) {
-        out << "set ylabel '" << yLabel << "';\n";
+        out << "set ylabel '" << escape(yLabel) << "';\n";
     }
     if (!title.empty()) {
-        out << "set title '" << title << "';\n";
+        out << "set title '" << escape(title) << "';\n";
     }
     if (fixedRatio) {
         out << "set size ratio -1;\n";
@@ -1825,12 +1843,12 @@ HistConfig &HistConfig::setDataLabel(const std::string val) {
 }
 
 HistConfig &HistConfig::addHorizontalLine(const double y, const std::string color) {
-    misc += std::string("set arrow from graph 0, first ") + std::to_string(y) + " to graph 1, first " + std::to_string(y) + " nohead lc rgb \"" + color + "\" front;\n";
+    misc += std::string("set arrow from graph 0, first ") + std::to_string(y) + " to graph 1, first " + std::to_string(y) + " nohead lc rgb '" + color + "' front;\n";
     return *this;
 }
 
 HistConfig &HistConfig::addVerticalLine(const double x, const std::string color) {
-    misc += std::string("set arrow from ") + std::to_string(x) + ", graph 0 to " + std::to_string(x) + ", graph 1 nohead lc rgb \"" + color + "\" front;\n";
+    misc += std::string("set arrow from ") + std::to_string(x) + ", graph 0 to " + std::to_string(x) + ", graph 1 nohead lc rgb '" + color + "' front;\n";
     return *this;
 }
 
@@ -2243,7 +2261,7 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     double const margin = 0.04;
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n"
-        << "set output \"" << prefix + ".png\"; \n"
+        << "set output '" << prefix + ".png'; \n"
         << conf.toString() << ";\n"
         << "set xrange [" << limits_x.getMin() - margin * size_x << ":" << limits_x.getMax() + margin * size_x << "];\n"
         << "set yrange [" << limits_y.getMin() - margin * size_y << ":" << limits_y.getMax() + margin * size_y << "];\n"
@@ -2252,7 +2270,7 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     cmd << "plot " << gpl.file(data, data_file) << " with ellipses notitle; \n";
     cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term tikz; \n"
-    //<< "set output \"" << prefix << ".tex\"; \n"
+    //<< "set output '" << prefix << ".tex'; \n"
     //<< "replot;\n";
 
     gpl << cmd.str();
@@ -2393,11 +2411,11 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
         threshold_over_percentage.push_back({percentage, threshold});
         std::string const extractName = conf.extractName(extractor);
         cmd1 << plt1.file(error_over_threshold, error_file1 + extractName + ".data")
-             << " u 1:2 with l title 'error " << extractName << "', ";
+             << " u 1:2 with l title 'error " << escape(extractName) << "', ";
         cmd2 << plt2.file(error_over_percentage, error_file2 + extractName + ".data")
-             << " u 1:2 with l title 'error " << extractName << "',";
+             << " u 1:2 with l title 'error " << escape(extractName) << "',";
         cmd2 << plt2.file(error_over_percentage_oracle, error_file2 + extractName + "-oracle.data")
-             << " u 1:2 with l title 'oracle " << extractName << "',";
+             << " u 1:2 with l title 'oracle " << escape(extractName) << "',";
 
         if (first_extract) {
             std::cout << "Error stats: " << error_stats.print() << std::endl;
@@ -2474,5 +2492,16 @@ std::vector<std::pair<T, T> > ThresholdErrorMean<T>::getData() const {
 }
 
 template class ThresholdErrorMean<float>;
+
+std::string escape(const std::string &str) {
+    std::string res;
+    for (const char c : str) {
+        if ('\'' == c) {
+            res += '\'';
+        }
+        res += c;
+    }
+    return res;
+}
 
 } // namespace runningstats

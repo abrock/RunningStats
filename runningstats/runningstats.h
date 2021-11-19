@@ -15,6 +15,8 @@
 
 namespace runningstats {
 
+std::string escape(std::string const& str);
+
 class HistConfig {
 public:
     /**
