@@ -134,6 +134,10 @@ public:
 
     HistConfig& addCommand(std::string const& cmd);
 
+    std::set<std::string> formats;
+
+    void addFormat(std::string const& fmt);
+
     Extract extract = Extract::Mean;
     double extractParam = .5;
 
@@ -175,6 +179,7 @@ public:
     HistConfig &addVerticalLine(double const x, std::string const color = "#ffffff");
 
     HistConfig clone() const;
+    std::string generateFormatCommands(const std::string &prefix) const;
 };
 
 template<class T>
@@ -665,6 +670,8 @@ public:
     std::pair<double, double> FreedmanDiaconisBinSize() const;
 
     size_t size() const;
+
+    size_t getCount() const;
 
     bool empty() const;
 

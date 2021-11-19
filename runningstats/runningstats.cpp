@@ -510,9 +510,10 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb \"white\";\n"
-        << "set output \"" << prefix + ".svg\"; \n"
-        << conf.toString();
+    cmd << "set term png;\n"
+        << "set output \"" << prefix + ".png\"; \n"
+        << conf.toString()
+        << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\";\n";
 
     if (!conf.dataLabel.empty()) {
         cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
@@ -530,6 +531,7 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     //cmd << "set term tikz; \n"
     //<< "set output \"" << prefix << ".tex\"; \n"
     //<< "replot;\n";
+    cmd << conf.generateFormatCommands(prefix);
 
     gpl << cmd.str();
 
@@ -582,9 +584,10 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb \"white\";\n"
-        << "set output \"" << prefix + ".svg\"; \n"
-        << conf.toString();
+    cmd << "set term png;\n"
+        << "set output \"" << prefix + ".png\"; \n"
+        << conf.toString()
+        << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\";\n";
 
     if (!conf.dataLabel.empty()) {
         cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
@@ -597,6 +600,7 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     //cmd << "set term tikz; \n"
     // << "set output \"" << prefix << ".tex\"; \n"
     // << "replot;\n";
+    cmd << conf.generateFormatCommands(prefix);
 
     gpl << cmd.str();
 
@@ -986,10 +990,10 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     std::string data_file = prefix + ".data";
 
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb \"white\";\n";
-    cmd << "set output \"" << prefix + ".svg\"; \n";
+    cmd << "set term png;\n";
+    cmd << "set output \"" << prefix + ".png\"; \n";
     cmd << conf.toString();
-    cmd << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\"; \n";
+    cmd << "set title \"" << conf.title << " n=" << getCount() << ", m=" << getMean() << ", s=" << getStddev() << "\";\n";
     if (!conf.dataLabel.empty()) {
         cmd << "set xlabel \"" << conf.dataLabel << "\";\n";
     }
@@ -1003,6 +1007,7 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     //cmd << "set term tikz; \n";
     //cmd << "set output \"" << prefix << ".tex\"; \n";
     //cmd << "replot;\n";
+    cmd << conf.generateFormatCommands(prefix);
 
     gpl << cmd.str();
 
@@ -1136,12 +1141,9 @@ void Histogram2D::plotHist(const std::string prefix, const bool absolute) const 
     }
     std::stringstream cmd;
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb 'white';\n";
-    cmd << "set output '" << prefix << ".svg';\n";
-    cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
-    cmd << "replot;\n";
+    cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
     gnuplotio::Gnuplot plt;
     plt << cmd.str();
     std::ofstream cmd_out(prefix + ".gpl");
@@ -1320,6 +1322,11 @@ size_t Stats2D<T>::size() const {
 }
 
 template<class T>
+size_t Stats2D<T>::getCount() const {
+    return size();
+}
+
+template<class T>
 bool Stats2D<T>::empty() const {
     return values.empty();
 }
@@ -1459,17 +1466,15 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb 'white';\n";
-    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString();
     cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
     cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
-    cmd << "set term png;\n";
-    cmd << "set output '" << prefix << ".png';\n";
-    cmd << "replot;\n";
+    cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term tikz;\n";
     //cmd << "set output '" << prefix << ".tex';\n";
     //cmd << "replot;\n";
@@ -1539,8 +1544,8 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb 'white';\n";
-    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString();
     cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
     cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
@@ -1562,6 +1567,7 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
         cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l title '" << extract_name << "'";
     }
     cmd << ";\n";
+    cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term png;\n";
     //cmd << "set output '" << prefix << ".png';\n";
     //cmd << "replot;\n";
@@ -1682,6 +1688,22 @@ HistConfig& HistConfig::addExtractors(const std::vector<std::pair<std::string, d
 HistConfig &HistConfig::addCommand(const std::string &cmd) {
     misc += ";\n" + cmd + ";\n";
     return *this;
+}
+
+void HistConfig::addFormat(const std::string &fmt) {
+    formats.insert(fmt);
+}
+
+std::string HistConfig::generateFormatCommands(std::string const& prefix) const {
+    std::stringstream cmd;
+    for (std::string const& fmt : formats) {
+        if ("svg" == fmt) {
+            cmd << "set term svg enhanced background rgb 'white';\n";
+            cmd << "set output '" << prefix << ".svg';\n"
+                << "replot;\n";
+        }
+    }
+    return cmd.str();
 }
 
 HistConfig &HistConfig::addExtractors(const std::vector<std::pair<HistConfig::Extract, double> > & vec) {
@@ -1892,8 +1914,8 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     data2file(data_out, conf);
     std::stringstream cmd;
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb 'white';\n";
-    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << "\n";
     cmd << "set xrange[" << min_val - width/2 << ":" << max_val + width/2 << "]; \n";
     cmd << "set xtics out;\n";
@@ -1905,9 +1927,7 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     default: cmd << "1:2 w lp"; break;
     }
     cmd << " notitle;\n";
-    cmd << "set term png;\n";
-    cmd << "set output '" << prefix << ".png';\n";
-    cmd << "replot;\n";
+    cmd << conf.generateFormatCommands(prefix);
     gnuplotio::Gnuplot plt;
     plt << cmd.str();
     std::ofstream cmd_out(prefix + ".gpl");
@@ -1920,6 +1940,8 @@ Image2D<T>::Image2D(const double _width1, double const _width2) : width1(_width1
 
 template<class T>
 Image1D<T> &Image2D<T>::operator[](const double index) {
+    static std::mutex enlarge_mutex;
+    std::lock_guard guard(enlarge_mutex);
     int64_t const ind = std::round(index / width1);
     min_x = std::min(min_x, ind * width1);
     max_x = std::max(max_x, ind * width1);
@@ -1943,8 +1965,8 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     data2file(data_out, conf);
     std::stringstream cmd;
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb 'white';\n";
-    cmd << "set output '" << prefix << ".svg';\n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << "\n";
     if (conf.flip_x) {
         cmd << "set xrange[" << max_x + width1/2 << ":" << min_x - width1/2 << "]; \n";
@@ -1961,9 +1983,7 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
-    cmd << "set term png;\n";
-    cmd << "set output '" << prefix << ".png';\n";
-    cmd << "replot;\n";
+    cmd << conf.generateFormatCommands(prefix);
     gnuplotio::Gnuplot plt;
     plt << cmd.str();
     std::ofstream cmd_out(prefix + ".gpl");
@@ -2222,14 +2242,15 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     double const size_y = limits_y.getMax() - limits_y.getMin();
     double const margin = 0.04;
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term svg enhanced background rgb \"white\";\n"
-        << "set output \"" << prefix + ".svg\"; \n"
+    cmd << "set term png;\n"
+        << "set output \"" << prefix + ".png\"; \n"
         << conf.toString() << ";\n"
         << "set xrange [" << limits_x.getMin() - margin * size_x << ":" << limits_x.getMax() + margin * size_x << "];\n"
         << "set yrange [" << limits_y.getMin() - margin * size_y << ":" << limits_y.getMax() + margin * size_y << "];\n"
            ;
 
     cmd << "plot " << gpl.file(data, data_file) << " with ellipses notitle; \n";
+    cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term tikz; \n"
     //<< "set output \"" << prefix << ".tex\"; \n"
     //<< "replot;\n";
