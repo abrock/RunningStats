@@ -37,6 +37,16 @@ TEST(Image2D, plot) {
     test.plot("x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y"));
 }
 
+TEST(Image2D, plot_float) {
+    Image2D<float> test(1, 1);
+    for (double xx = 0; xx <= 100; ++xx) {
+        for (double yy = 0; yy <= 100; yy++) {
+            test[xx][yy] = yy;
+        }
+    }
+    test.plot("float x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y"));
+}
+
 TEST(Image2D, extractor) {
     Image2D<QuantileStats<float> > test(1, 0.025);
     for (double xx = -10; xx <= 10; ++xx) {

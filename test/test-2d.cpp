@@ -54,7 +54,12 @@ TEST(Plot2D, LaplaceHist) {
                     );
     }
     std::pair<double, double> bin = {.01, .01};
-    stats.plotHist("plot2d-laplace", bin);
+    stats.plotHist("plot2d-laplace", bin,
+                   HistConfig()
+                   .addExtractor(HistConfig::Extract::Median, 0, "black", "Median")
+                   .addExtractor(HistConfig::Extract::Quantile, .75, "white", "IQR")
+                   .addExtractor(HistConfig::Extract::Quantile, .25, "white", "")
+                   );
     stats.getHistogram2Dfixed(bin).plotHistPm3D("plot2d-laplace-pm3d");
     stats.getHistogram2Dfixed(bin)
             .plotHistPm3D("plot2d-laplace-pm3d-normalized",

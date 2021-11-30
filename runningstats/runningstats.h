@@ -103,19 +103,21 @@ public:
         MedianAndIQR
     };
 
-    /**
-     * @brief extractName returns a string representing an Extract option
-     * @param e
-     * @return
-     */
     static std::string extractName(Extract const e);
 
-    /**
-     * @brief extractName returns a string representing an Extract option + parameter
-     * @param e
-     * @return
-     */
-    static std::string extractName(std::pair<Extract, double> const e);
+    struct ExtractConf {
+        Extract ex;
+        double value;
+        std::string color;
+        std::string title;
+
+        /**
+         * @brief getName returns a string representing an Extract option
+         * @param e
+         * @return
+         */
+        std::string getName() const;
+    };
 
     /**
      * @brief str2extract finds the Extract value for a given string or throws an expcetion.
@@ -127,10 +129,12 @@ public:
     /**
      * @brief extractors Set of extractors to be plotted in ThresholdErrorMean.
      */
-    std::vector<std::pair<Extract, double> > extractors;
+    std::vector<ExtractConf> extractors;
+
+    HistConfig& addExtractor(Extract const _ex, double const _val, std::string const &_color, std::string const &_label);
 
     HistConfig& addExtractors(std::vector<std::pair<Extract, double> > const& vec);
-    HistConfig& setExtractors(std::vector<std::pair<Extract, double> > const& vec);
+    HistConfig& setExtractors(const std::vector<std::tuple<HistConfig::Extract, double, std::string> > &vec);
 
     HistConfig& addExtractors(std::vector<std::pair<std::string, double> > const& vec);
 

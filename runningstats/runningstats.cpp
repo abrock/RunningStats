@@ -1567,22 +1567,24 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     cmd << conf.toString();
     cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
     cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
-    cmd << "set key outside horiz;\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "set view map;\n";
     cmd << "set pm3d corners2color c1;\n";
+    cmd << "set key out horiz;\n";
     cmd << "splot '" << data_file << "' u 1:2:3 with pm3d notitle";
-    for (std::pair<HistConfig::Extract, double> const& extractor : conf.extractors) {
+    for (HistConfig::ExtractConf const& extractor : conf.extractors) {
         std::vector<std::pair<double, double> > data_out;
         data_out.reserve(data.size());
         for (size_t col = 0; col < data.size(); ++col) {
             QuantileStats<float> const& col_data = stats_per_column[col];
             double const row_bin = width_1 * col + min_1;
-            data_out.push_back({row_bin, col_data.getStat(extractor.first, extractor.second)});
+            data_out.push_back({row_bin, col_data.getStat(extractor.ex, extractor.value)});
         }
-        std::string extract_name = HistConfig::extractName(extractor);
-        cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l title '" << extract_name << "'";
+        std::string extract_name = extractor.getName();
+        std::string title = extractor.title.empty() ? " notitle " : " title '" + escape(extractor.title) + "' ";
+        std::string color = extractor.color.empty() ? " " : " lc rgb '" + escape(extractor.color) + "' ";
+        cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l " << color << title;
     }
     cmd << ";\n";
     cmd << conf.generateFormatCommands(prefix);
@@ -1667,15 +1669,15 @@ std::string HistConfig::extractName(const HistConfig::Extract e) {
     return "Unknown";
 }
 
-std::string HistConfig::extractName(const std::pair<HistConfig::Extract, double> e) {
-    switch (e.first) {
-    case Extract::Mean : return extractName(e.first);
-    case Extract::Median : return extractName(e.first);
-    case Extract::Stddev : return extractName(e.first);
-    case Extract::Variance : return extractName(e.first);
+std::string HistConfig::ExtractConf::getName() const {
+    switch (ex) {
+    case Extract::Mean : return extractName(ex);
+    case Extract::Median : return extractName(ex);
+    case Extract::Stddev : return extractName(ex);
+    case Extract::Variance : return extractName(ex);
     default: break;
     }
-    std::string result = extractName(e.first) + "-" + std::to_string(e.second);
+    std::string result = extractName(ex) + "-" + std::to_string(value);
     size_t pos = result.size()-1;
     while (result[pos-1] == '0') {
         pos--;
@@ -1696,9 +1698,14 @@ HistConfig::Extract HistConfig::str2extract(std::string s) {
     throw std::runtime_error("Unknown extract string");
 }
 
+HistConfig &HistConfig::addExtractor(const HistConfig::Extract _ex, const double _val, const std::string &_color, const std::string &_label) {
+    extractors.push_back({_ex, _val, _color, _label});
+    return *this;
+}
+
 HistConfig& HistConfig::addExtractors(const std::vector<std::pair<std::string, double> > &vec) {
     for (auto const& it : vec) {
-        addExtractors({{str2extract(it.first), it.second}});
+        addExtractor(str2extract(it.first), it.second, "", "");
     }
     return *this;
 }
@@ -1725,12 +1732,17 @@ std::string HistConfig::generateFormatCommands(std::string const& prefix) const 
 }
 
 HistConfig &HistConfig::addExtractors(const std::vector<std::pair<HistConfig::Extract, double> > & vec) {
-    extractors.insert(extractors.end(), vec.begin(), vec.end());
+    for (std::pair<HistConfig::Extract, double> const& it : vec) {
+        addExtractor(it.first, it.second, "", "");
+    }
     return *this;
 }
 
-HistConfig &HistConfig::setExtractors(const std::vector<std::pair<HistConfig::Extract, double> > &vec) {
-    extractors = vec;
+HistConfig &HistConfig::setExtractors(const std::vector<std::tuple<HistConfig::Extract, double, std::string> > &vec) {
+    extractors.clear();
+    for (std::tuple<HistConfig::Extract, double, std::string> const& it : vec) {
+        addExtractor(std::get<0>(it), std::get<1>(it), std::get<2>(it), "");
+    }
     return *this;
 }
 
@@ -2338,9 +2350,9 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     std::sort(data.begin(), data.end());
     std::sort(only_errors.begin(), only_errors.end());
 
-    std::vector<std::pair<HistConfig::Extract, double> > extractors = conf.extractors;
+    std::vector<HistConfig::ExtractConf> extractors = conf.extractors;
     if (extractors.empty()) {
-        extractors.push_back({conf.extract, conf.extractParam});
+        extractors.push_back({conf.extract, conf.extractParam, "", ""});
     }
 
     std::string const error_file1 = prefix + "-errors-over-threshold";
@@ -2377,7 +2389,7 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     std::vector<std::pair<T, T> >
             error_over_threshold, percentage_over_threshold,
             error_over_percentage, error_over_percentage_oracle, threshold_over_percentage;
-    for (std::pair<HistConfig::Extract, double> const& extractor : extractors) {
+    for (HistConfig::ExtractConf const& extractor : extractors) {
         error_over_threshold.clear();
         percentage_over_threshold.clear();
         error_over_percentage.clear();
@@ -2391,8 +2403,8 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
             if (conf.max_plot_pts <= 0
                     || conf.max_plot_pts >= int64_t(data.size())
                     || double(ii) * (double(conf.max_plot_pts) / data.size()) >= error_over_threshold.size()) {
-                double const error = error_stats.getStat(extractor.first, extractor.second);
-                double const oracle_error = oracle_stats.getStat(extractor.first, extractor.second);
+                double const error = error_stats.getStat(extractor.ex, extractor.value);
+                double const oracle_error = oracle_stats.getStat(extractor.ex, extractor.value);
                 double const threshold = it.first;
                 double const percentage = 100.0*double(ii) / double(data.size());
                 error_over_threshold.push_back({threshold, error});
@@ -2402,14 +2414,14 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
                 threshold_over_percentage.push_back({percentage, threshold});
             }
         }
-        double const error = error_stats.getStat(extractor.first, extractor.second);
+        double const error = error_stats.getStat(extractor.ex, extractor.value);
         double const threshold = data.rbegin()->first;
         double const percentage = 100.0;
         error_over_threshold.push_back({threshold, error});
         percentage_over_threshold.push_back({threshold, percentage});
         error_over_percentage.push_back({percentage, error});
         threshold_over_percentage.push_back({percentage, threshold});
-        std::string const extractName = conf.extractName(extractor);
+        std::string const extractName = extractor.getName();
         cmd1 << plt1.file(error_over_threshold, error_file1 + extractName + ".data")
              << " u 1:2 with l title 'error " << escape(extractName) << "', ";
         cmd2 << plt2.file(error_over_percentage, error_file2 + extractName + ".data")
