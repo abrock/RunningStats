@@ -430,13 +430,13 @@ public:
 
     bool push(double const value);
 
-    bool push_vector(std::vector<double> const& values);
-    bool push_vector(std::vector<float> const& values);
+    template<class T>
+    bool push_vector(std::vector<T> const& values);
 
     bool push_unsafe(double const value);
 
-    bool push_vector_unsafe(std::vector<double> const& values);
-    bool push_vector_unsafe(std::vector<float> const& values);
+    template<class T>
+    bool push_vector_unsafe(const std::vector<T> &values);
 
     std::vector<std::pair<double, double> > getAbsoluteHist() const;
     std::vector<std::pair<double, double> > getRelativeHist() const;

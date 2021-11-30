@@ -652,6 +652,15 @@ double QuantileStats<T>::FreedmanDiaconisBinSize() const {
     return 1;
 }
 
+template<>
+double QuantileStats<size_t>::FreedmanDiaconisBinSize() const {
+    double const iqr = getQuantile(.75) - getQuantile(.25);
+    if (iqr > 0) {
+        return std::ceil(2 * iqr / cbrt(double(n)));
+    }
+    return 1;
+}
+
 template<class T>
 double QuantileStats<T>::getAccurateVariance() const {
     if (n < 2) {
@@ -716,18 +725,23 @@ double QuantileStats<T>::getTrimmedMean(const T & ignore) const {
 
 template class QuantileStats<double>;
 template class QuantileStats<float>;
+template class QuantileStats<size_t>;
 
 template void QuantileStats<double>::push(std::vector<double> const&);
 template void QuantileStats<float>::push(std::vector<double> const&);
+template void QuantileStats<size_t>::push(std::vector<double> const&);
 
 template void QuantileStats<double>::push(std::vector<float> const&);
 template void QuantileStats<float>::push(std::vector<float> const&);
+template void QuantileStats<size_t>::push(std::vector<float> const&);
 
 template void QuantileStats<double>::push_unsafe(std::vector<double> const&);
 template void QuantileStats<float>::push_unsafe(std::vector<double> const&);
+template void QuantileStats<size_t>::push_unsafe(std::vector<double> const&);
 
 template void QuantileStats<double>::push_unsafe(std::vector<float> const&);
 template void QuantileStats<float>::push_unsafe(std::vector<float> const&);
+template void QuantileStats<size_t>::push_unsafe(std::vector<float> const&);
 
 void RunningCovariance::push_unsafe(double x, double y)
 {
@@ -924,13 +938,8 @@ bool Histogram::push(double value) {
     return true;
 }
 
-
-bool Histogram::push_vector(const std::vector<double> &values) {
-    std::lock_guard guard(push_mutex);
-    return push_vector_unsafe(values);
-}
-
-bool Histogram::push_vector(const std::vector<float> &values) {
+template<class T>
+bool Histogram::push_vector(const std::vector<T> &values) {
     std::lock_guard guard(push_mutex);
     return push_vector_unsafe(values);
 }
@@ -946,7 +955,8 @@ bool Histogram::push_unsafe(const double value) {
     return true;
 }
 
-bool Histogram::push_vector_unsafe(const std::vector<double> &values) {
+template<class T>
+bool Histogram::push_vector_unsafe(const std::vector<T> &values) {
     bool success = true;
     for (const double  val : values) {
         success &= push_unsafe(val);
@@ -954,13 +964,6 @@ bool Histogram::push_vector_unsafe(const std::vector<double> &values) {
     return success;
 }
 
-bool Histogram::push_vector_unsafe(const std::vector<float> &values) {
-    bool success = true;
-    for (const float  val : values) {
-        success &= push_unsafe(val);
-    }
-    return success;
-}
 
 std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {
     std::vector<std::pair<double, double> > result;
