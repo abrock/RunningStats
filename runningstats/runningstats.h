@@ -444,6 +444,8 @@ public:
     void plotHist(std::string const prefix, bool const absolute = true) const;
     void plotHist(std::string const prefix, HistConfig const conf) const;
 
+    std::string printHist() const;
+
     size_t getBinCount(double const value) const;
 
     double getLikelihood() const;

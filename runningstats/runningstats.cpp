@@ -1036,6 +1036,15 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     out << cmd.str();
 }
 
+std::string Histogram::printHist() const {
+    std::stringstream out;
+    std::vector<std::pair<double, double> > hist = getAbsoluteHist();
+    for (size_t ii = 0; ii < hist.size(); ++ii) {
+        out << ii << ": " << hist[ii].first << ":\t" << hist[ii].second << "\t(" << 100.0*hist[ii].second/n << "%)" << std::endl;
+    }
+    return out.str();
+}
+
 void Histogram::plotHist(const std::string prefix, const bool absolute) const {
     plotHist(prefix, HistConfig().setAbsolute(absolute));
 }
