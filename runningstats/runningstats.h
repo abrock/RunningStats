@@ -722,6 +722,9 @@ public:
 
     Stats2D<T> getStats2D(size_t ii, size_t jj) const;
 
+    template<class U>
+    QuantileStats<U> getStats(size_t ii) const;
+
     void plotAll(std::string const prefix, HistConfig const conf) const;
 
     size_t size() const;

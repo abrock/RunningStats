@@ -2528,4 +2528,17 @@ std::string escape(const std::string &str) {
     return res;
 }
 
+template<class T>
+template<class U>
+QuantileStats<U> StatsN<T>::getStats(size_t ii) const {
+    if (ii >= dim()) {
+        throw std::runtime_error(std::string("Requested ii (") + std::to_string(ii) + ") too large");
+    }
+    QuantileStats<U> result;
+    result.push_unsafe(values[ii]);
+    return result;
+}
+
+template QuantileStats<float> StatsN<float>::getStats(size_t) const;
+
 } // namespace runningstats
