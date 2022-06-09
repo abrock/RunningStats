@@ -7,6 +7,7 @@
 
 
 find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
 
 foreach(executable test-2d test-knuth)
 add_executable(${executable} ${executable}.cpp)
@@ -26,7 +27,9 @@ add_executable(test-runningstats
 
 foreach(executable test-runningstats test-2d test-knuth)
 target_link_libraries(${executable} ${LIBRARY_NAME})
-target_link_libraries(${executable} pthread ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(${executable}
+	GTest::gtest
+	)
 endforeach()
 
 #install(TARGETS test-runningstats
