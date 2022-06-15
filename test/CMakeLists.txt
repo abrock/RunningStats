@@ -6,7 +6,8 @@
 # include_directories(${FOO_INCLUDE_DIRS})
 
 
-find_package(GTest REQUIRED)
+find_package(GTest)
+if (GTest_FOUND)
 find_package(Threads REQUIRED)
 
 foreach(executable test-2d test-knuth)
@@ -31,6 +32,8 @@ target_link_libraries(${executable}
 	GTest::gtest
 	)
 endforeach()
+
+endif(GTest_FOUND)
 
 #install(TARGETS test-runningstats
 # In order to export target, uncomment next line
