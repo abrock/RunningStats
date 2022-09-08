@@ -15,6 +15,11 @@
 
 namespace runningstats {
 
+#define READ_BIN(in, data) (in.read(reinterpret_cast<char*>(&data), sizeof data))
+#define WRITE_BIN(out, data) {out.write(reinterpret_cast<const char*>(&data), sizeof data);}
+
+std::string tostring(int64_t n);
+
 std::string escape(std::string const& str);
 
 class HistConfig {
