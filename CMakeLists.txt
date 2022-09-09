@@ -13,8 +13,11 @@ include(${CMAKE_SOURCE_DIR}/cmake/SetEnv.cmake)
 # Library sources
 add_subdirectory(${LIBRARY_FOLDER})
 
+option(BUILD_TESTS "" OFF)
+if(BUILD_TESTS)
 # Library examples
 add_subdirectory(test)
+endif()
 
 # Install targets
 include(${CMAKE_SOURCE_DIR}/cmake/InstallConfig.cmake)
