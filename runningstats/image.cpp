@@ -155,7 +155,8 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     }
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
-    cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
+    cmd << conf.generateContours(data_file);
+    cmd << "plot '" << data_file << "' u 1:2:3 with image notitle " << conf.plotContours(data_file) + ";\n";
     cmd << conf.generateFormatCommands(prefix);
     gnuplotio::Gnuplot plt;
     plt << cmd.str();

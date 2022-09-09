@@ -12,6 +12,30 @@
 
 namespace runningstats {
 
+
+std::string Contour::generateContour(const std::string &data_file) const {
+    return "\nset contour\n"
+    "unset surface\n"
+    "set cntrparam levels discrete " + std::to_string(value) + "\n"
+    "set view map\n"
+    "unset clabel\n"
+    "set table '" + contoursFilename(data_file) + "'\n"
+    "splot '" + data_file + "' u 1:2:3 not\n"
+    "unset table\n"
+    "unset contour\n";
+}
+
+std::string Contour::plotContour(const std::string &data_file) const {
+    return
+            ", '" + contoursFilename(data_file) + "' w l " +
+            (color.empty() ? "" : "lc rgb '#" + color + "' ") +
+            (title.empty() ? "notitle " : "title '" + title + "' ");
+}
+
+std::string Contour::contoursFilename(const std::string &prefix) const {
+    return prefix + "-contour-" + std::to_string(value);
+}
+
 HistConfig &HistConfig::setMinMaxX(const double min, const double max) {
     min_x = min;
     max_x = max;
@@ -22,6 +46,27 @@ HistConfig &HistConfig::setMinMaxY(const double min, const double max) {
     min_y = min;
     max_y = max;
     return *this;
+}
+
+HistConfig &HistConfig::addContour(const double value, const std::string title, const std::string color) {
+    contours[value] = {value, title, color};
+    return *this;
+}
+
+std::string HistConfig::generateContours(const std::string &data_file) const {
+    std::string result;
+    for (auto const& it : contours) {
+        result += it.second.generateContour(data_file);
+    }
+    return result;
+}
+
+std::string HistConfig::plotContours(const std::string &data_file) const {
+    std::string result;
+    for (auto const& it : contours) {
+        result += it.second.plotContour(data_file);
+    }
+    return result;
 }
 
 HistConfig& HistConfig::setMaxPlotPts(int64_t val) {

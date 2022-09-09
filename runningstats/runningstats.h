@@ -22,12 +22,62 @@ std::string tostring(int64_t n);
 
 std::string escape(std::string const& str);
 
+struct Contour {
+    double value;
+    std::string title;
+    std::string color;
+
+    /**
+     * @brief generateContour generates the commands to make Gnuplot generate a file containing the contour data.
+     * @param data_file
+     * @return
+     */
+    std::string generateContour(const std::string &data_file) const;
+
+    /**
+     * @brief plotContour generates the commands to make Gnuplot actually plot the previously generated contour lines.
+     * @param data_file
+     * @return
+     */
+    std::string plotContour(const std::string &data_file) const;
+
+    /**
+     * @brief contoursFilename generates the filename for the contours data
+     * @param data_file
+     * @return
+     */
+    std::string contoursFilename(std::string const& data_file) const;
+};
+
 class HistConfig {
 public:
     /**
      * @brief logX logarithmic scale of the x axis.
      */
     bool logX = false;
+
+    /**
+     * @brief Contour configurations for equipotential lines.
+     */
+    std::map<double, Contour> contours;
+
+    /**
+     * @brief addContour adds an equipotential line to an image plot
+     * @param value
+     * @param title
+     * @param color
+     */
+    HistConfig &addContour(
+            double const value,
+            std::string const title = "",
+            std::string const color = ""
+                    );
+
+    /**
+     * @brief generateContours generates the commands to make Gnuplot generate the contour data.
+     * @return
+     */
+    std::string generateContours(const std::string &data_file) const;
 
     /**
      * @brief logY logarithmic scale of the y axis.
@@ -191,6 +241,14 @@ public:
 
     HistConfig clone() const;
     std::string generateFormatCommands(const std::string &prefix) const;
+
+    /**
+     * @brief plotContours generates the commands to make gnuplot actually plot the previously generated equpotential lines
+     * by calling Contour::plotContours for every contour.
+     * @param data_file
+     * @return
+     */
+    std::string plotContours(const std::string &data_file) const;
 };
 
 template<class T>
