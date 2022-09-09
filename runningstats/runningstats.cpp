@@ -105,33 +105,6 @@ bool StatsN<T>::push(const std::vector<U> &val) {
 template bool StatsN<float>::push(const std::vector<float> &val);
 template bool StatsN<float>::push(const std::vector<double> &val);
 
-template<class T>
-template<class U>
-bool Stats2D<T>::push_unsafe(const Stats2D<U> &other) {
-    bool success = true;
-    for (auto const& val : other.getData()) {
-        success &= push_unsafe(val.first, val.second);
-    }
-    return success;
-}
-
-template<class T>
-template<class U>
-bool Stats2D<T>::push(const Stats2D<U> &other) {
-    std::lock_guard<std::mutex> guard(push_mutex);
-    return push_unsafe(other);
-}
-
-template bool Stats2D<float>::push_unsafe(const Stats2D<float> & other);
-template bool Stats2D<float>::push_unsafe(const Stats2D<double> & other);
-template bool Stats2D<double>::push_unsafe(const Stats2D<float> & other);
-template bool Stats2D<double>::push_unsafe(const Stats2D<double> & other);
-
-template bool Stats2D<float>::push(const Stats2D<float> & other);
-template bool Stats2D<float>::push(const Stats2D<double> & other);
-template bool Stats2D<double>::push(const Stats2D<float> & other);
-template bool Stats2D<double>::push(const Stats2D<double> & other);
-
 void Ellipses::push_unsafe(const std::tuple<double, double, double, double> &val) {
     data.push_back(val);
 
