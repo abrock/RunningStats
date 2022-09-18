@@ -153,6 +153,12 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     else {
         cmd << "set yrange[" << min_y - width2/2 << ":" << max_y + width2/2 << "]; \n";
     }
+    if (!conf.colormap.empty()) {
+        std::string const pal_name = conf.colormap + ".pal";
+        std::ofstream colormap_out(pal_name);
+        colormap_out << ColorMaps().getColorMap(conf.colormap) << std::endl;
+        cmd << "load '" << pal_name << "';\n";
+    }
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << conf.generateContours(data_file);

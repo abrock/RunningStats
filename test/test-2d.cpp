@@ -160,6 +160,18 @@ TEST(Stats2D, merge) {
     c.push(a);
 }
 
+TEST(Image2D, plot_sine) {
+    double const scale = 100;
+    Image2D<float> img(1.0/scale, 1.0/scale);
+    for (int xx = -500; xx <= 500; ++xx) {
+        for (int yy = -500; yy <= 500; ++yy) {
+            img[double(xx)/scale][double(yy)/scale] = std::sin(double(xx)/scale);
+        }
+    }
+    img.plot("sine-2d", HistConfig().setTitle("f(x) := sin(x)").setColorMap("blue-red"));
+
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;

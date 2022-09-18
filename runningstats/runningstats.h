@@ -49,6 +49,20 @@ struct Contour {
     std::string contoursFilename(std::string const& data_file) const;
 };
 
+class ColorMaps {
+    std::map<std::string, std::string> colormaps;
+public:
+    std::string getColorMap(std::string const & name) {
+        auto const& it = colormaps.find(name);
+        if (colormaps.end() != it) {
+            return it->second;
+        }
+
+        throw std::runtime_error("Colormap " + name + " unknown");
+    }
+    ColorMaps();
+};
+
 class HistConfig {
 public:
     /**
@@ -60,6 +74,17 @@ public:
      * @brief Contour configurations for equipotential lines.
      */
     std::map<double, Contour> contours;
+
+    /**
+     * @brief colormap name of the colormap to use.
+     */
+    std::string colormap;
+
+    HistConfig& setColorMap(std::string const& name) {
+        ColorMaps().getColorMap(name);
+        colormap = name;
+        return *this;
+    }
 
     /**
      * @brief addContour adds an equipotential line to an image plot
