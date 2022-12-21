@@ -224,17 +224,20 @@ void QuantileStats<T>::sort() const {
 template<class T>
 void QuantileStats<T>::plotHist(const std::string prefix, const double bin_size, HistConfig conf) const {
     double _bin_size = bin_size > 0 ? bin_size : FreedmanDiaconisBinSize();
-    double const x_range = getMax() - getMin();
+    setRangeByIgnoreAmount(conf);
+    double x_range = getMax() - getMin();
+    if (conf.ignore_amount > 0) {
+        x_range = conf.max_x - conf.min_x;
+    }
     double const n_x = x_range / _bin_size;
     if (std::isfinite(n_x) && conf.max_nx > 0 && conf.max_nx < n_x) {
         _bin_size = x_range / conf.max_nx;
     }
-    if (x_range / _bin_size > conf.max_plot_pts) {
+    if (x_range / _bin_size > conf.max_plot_pts && conf.max_plot_pts > 0) {
         _bin_size = x_range / conf.max_plot_pts;
     }
     Histogram h(_bin_size);
     h.push_vector_unsafe(values);
-    setRangeByIgnoreAmount(conf);
     h.plotHist(prefix, conf);
 }
 
