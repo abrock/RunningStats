@@ -168,7 +168,8 @@ TEST(Image2D, plot_sine) {
             img[double(xx)/scale][double(yy)/scale] = std::sin(double(xx)/scale);
         }
     }
-    img.plot("sine-2d", HistConfig().setTitle("f(x) := sin(x)").setColorMap("blue-red"));
+    img.plot("sine-2d-blue-red", HistConfig().setTitle("f(x) := sin(x)").setColorMap("blue-red"));
+    img.plot("sine-2d-blue-red-2", HistConfig().setTitle("f(x) := sin(x)").setColorMap("blue-red-2"));
 
 }
 
