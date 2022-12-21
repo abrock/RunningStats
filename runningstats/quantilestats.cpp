@@ -390,18 +390,22 @@ void QuantileStats<T>::plotHistAndCDF(const std::string prefix, HistConfig conf)
 
 template<class T>
 double QuantileStats<T>::FreedmanDiaconisBinSize() const {
-    double const iqr = getQuantile(.75) - getQuantile(.25);
-    if (iqr > 0) {
-        return 2 * iqr / cbrt(double(n));
+    for (double const ignore : {1.0/2, 1.0/4, 1.0/8, 1.0/16, 1.0/32, 1.0/64}) {
+        double const iqr = getQuantile(1.0 - ignore/2) - getQuantile(ignore/2);
+        if (iqr > 0) {
+            return 2 * iqr / cbrt(double(n));
+        }
     }
     return 1;
 }
 
 template<>
 double QuantileStats<size_t>::FreedmanDiaconisBinSize() const {
-    double const iqr = getQuantile(.75) - getQuantile(.25);
-    if (iqr > 0) {
-        return std::ceil(2 * iqr / cbrt(double(n)));
+    for (double const ignore : {.5, .25, .125, .0625}) {
+        double const iqr = getQuantile(1.0 - ignore/2) - getQuantile(.5 - ignore/2);
+        if (iqr > 0) {
+            return std::ceil(2 * iqr / cbrt(double(n)));
+        }
     }
     return 1;
 }
