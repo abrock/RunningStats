@@ -260,6 +260,12 @@ HistConfig &HistConfig::setLogCB(bool const val) {
     return *this;
 }
 
+HistConfig &HistConfig::setMinMaxCB(double min_cb, double max_cb) {
+    this->min_cb = min_cb;
+    this->max_cb = max_cb;
+    return *this;
+}
+
 HistConfig &HistConfig::setAbsolute(const bool val) {
     absolute = val;
     return *this;
