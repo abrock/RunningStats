@@ -31,3 +31,16 @@ target_link_libraries(${PROGRAM}
 
 install(TARGETS ${PROGRAM} DESTINATION bin)
 endforeach()
+
+option(USE_OPENCV "Use OpenCV to build an example program which reads images and plots pixel values")
+if (USE_OPENCV)
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+add_executable(runningstats-plot-image plot-image.cpp)
+target_link_libraries(runningstats-plot-image
+    runningstats
+    ${OpenCV_LIBRARIES}
+    )
+install(TARGETS runningstats-plot-image DESTINATION bin)
+endif(USE_OPENCV)
