@@ -61,6 +61,10 @@ public:
         throw std::runtime_error("Colormap " + name + " unknown");
     }
     ColorMaps();
+
+    static std::string blue_red();
+
+    static std::string blue_red_2();
 };
 
 class HistConfig {
