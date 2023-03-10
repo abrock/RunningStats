@@ -630,6 +630,9 @@ public:
     template<class U>
     void push_unsafe(std::vector<U> const& values);
 
+    template<class U>
+    void push_unsafe(const QuantileStats<U> &other);
+
     Histogram getHistogram(double const bin_size);
 
     T getQuantile(const double quantile) const;
@@ -851,6 +854,9 @@ public:
     void plot(std::string const& prefix, HistConfig const& conf);
 
     void data2file(std::ostream &out, const HistConfig &conf);
+
+    template<class U>
+    void merge(QuantileStats<U>& stats) const;
 };
 
 template<class T>
@@ -877,6 +883,9 @@ public:
     void push_unsafe(double const x, double const y, std::vector<double> const& values);
 
     void data2file(std::ostream& out, HistConfig const& conf);
+
+    template<class U>
+    QuantileStats<U> merged() const;
 };
 
 } // namespace runningstats

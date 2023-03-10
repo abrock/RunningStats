@@ -31,6 +31,14 @@ void QuantileStats<T>::push_unsafe(const double value) {
 }
 
 template<class T>
+template<class U>
+void QuantileStats<T>::push_unsafe(QuantileStats<U> const& other) {
+    push_unsafe(other.values);
+}
+
+template void QuantileStats<float>::push_unsafe(QuantileStats<float> const& other);
+
+template<class T>
 Histogram QuantileStats<T>::getHistogram(const double bin_size) {
     Histogram result(bin_size);
     result.push_vector_unsafe(values);

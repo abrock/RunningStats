@@ -69,6 +69,31 @@ TEST(Image2D, extractor) {
     test.plot("x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y").extractMedian());
 }
 
+TEST(Image2d, merged) {
+    QuantileStats<float> stats;
+    Image2D<QuantileStats<float> > img(.1,.1);
+    std::mt19937_64 engine(0xCAFECAFE);
+    std::uniform_real_distribution<float> dist(-1,1);
+    for (size_t ii = 0; ii < 10'000; ++ii) {
+        float const val = dist(engine);
+        float const x = dist(engine);
+        float const y = dist(engine);
+        img[x][y].push_unsafe(val);
+        stats.push_unsafe(val);
+    }
+    QuantileStats<float> cmp_stats = img.merged<float>();
+    double const threshold = 1e-7;
+    ASSERT_NEAR(stats.getMedian(), cmp_stats.getMedian(), threshold);
+    ASSERT_NEAR(stats.getMean(), cmp_stats.getMean(), threshold);
+    ASSERT_NEAR(stats.getStddev(), cmp_stats.getStddev(), threshold);
+    ASSERT_NEAR(stats.getVar(), cmp_stats.getVar(), threshold);
+    for (size_t ii = 0; ii <= 200; ++ii) {
+        double const quantile = double(ii)/200;
+        ASSERT_NEAR(stats.getQuantile(quantile), cmp_stats.getQuantile(quantile), threshold) << "Quantile: " << quantile;
+    }
+
+}
+
 TEST(Image2D, push_unsafe) {
     Image2D<std::vector<QuantileStats<float> > > test(1,1);
     test.push_unsafe(0,0,{0,1,2,3,4});

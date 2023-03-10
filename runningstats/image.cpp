@@ -272,6 +272,37 @@ void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
     }
 }
 
+template<class T>
+template<class U>
+void Image1D<T>::merge(QuantileStats<U> &stats) const {
+    for (T const& data : pos) {
+        stats.push_unsafe(data);
+    }
+    for (T const& data : neg) {
+        stats.push_unsafe(data);
+    }
+}
+
+template void Image1D<float>::merge(QuantileStats<float> &stats) const;
+template void Image1D<QuantileStats<float> >::merge(QuantileStats<float> &stats) const;
+
+
+template<class T>
+template<class U>
+QuantileStats<U> Image2D<T>::merged() const {
+    QuantileStats<float> result;
+    for (Image1D<T> const& data: pos) {
+        data.merge(result);
+    }
+    for (Image1D<T> const& data: neg) {
+        data.merge(result);
+    }
+    return result;
+}
+
+template QuantileStats<float> Image2D<float>::merged() const;
+template QuantileStats<float> Image2D<QuantileStats<float> >::merged() const;
+
 template class Image1D<double>;
 template class Image1D<RunningStats>;
 template class Image1D<QuantileStats<float> >;
