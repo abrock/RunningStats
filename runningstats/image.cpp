@@ -10,6 +10,9 @@
 
 #include "gnuplot-iostream.h"
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
 namespace runningstats {
 
 template<class T>
@@ -155,9 +158,13 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     }
     if (!conf.colormap.empty()) {
         std::string const pal_name = conf.colormap + ".pal";
-        std::ofstream colormap_out(pal_name);
-        colormap_out << ColorMaps().getColorMap(conf.colormap) << std::endl;
         cmd << "load '" << pal_name << "';\n";
+        static std::mutex lock;
+        std::lock_guard guard(lock);
+        if (!fs::exists(pal_name)) {
+            std::ofstream colormap_out(pal_name);
+            colormap_out << ColorMaps().getColorMap(conf.colormap) << std::endl;
+        }
     }
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
