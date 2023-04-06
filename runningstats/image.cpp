@@ -84,6 +84,42 @@ void Image1D<T>::data2file(std::ostream& out, const HistConfig &conf) {
 }
 
 template<class T>
+void Image1D<T>::setParent(Image2D<T> &p) {
+    parent = &p;
+}
+
+template<class T>
+T Image1D<T>::aggregate(std::function<T (T, T)> func) const {
+    if (neg.empty()) {
+        return aggregate(pos, func);
+    }
+    if (pos.empty()) {
+        return aggregate(neg, func);
+    }
+    return func(aggregate(pos, func), aggregate(neg, func));
+}
+
+template<class T>
+bool Image1D<T>::empty() const {
+    return pos.empty() && neg.empty();
+}
+
+template<class T>
+T Image1D<T>::aggregate(const std::vector<T> &vec, std::function<T (T, T)> func) {
+    if (vec.empty()) {
+        return T();
+    }
+    T result = vec.front();
+    if (vec.size() == 1) {
+        return result;
+    }
+    for (size_t ii = 1; ii < vec.size(); ++ii) {
+        result = func(result, vec[ii]);
+    }
+    return result;
+}
+
+template<class T>
 void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::string const data_file = prefix + ".data";
     std::ofstream data_out(data_file);
@@ -112,6 +148,20 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
 
 template<class T>
 Image2D<T>::Image2D(const double _width1, double const _width2) : width1(_width1), width2(_width2) {
+}
+
+template<class T>
+Image2D<T>::Image2D(const Image2D<T> &other) {
+    width1 = other.width1;
+    width2 = other.width2;
+    pos = other.pos;
+    neg = other.neg;
+    for (Image1D<T> & it : pos) {
+        it.setParent(*this);
+    }
+    for (Image1D<T> & it : neg) {
+        it.setParent(*this);
+    }
 }
 
 template<class T>
@@ -280,6 +330,48 @@ void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
 }
 
 template<class T>
+Image2D<T> Image2D<T>::mergeImages(
+        Image2D<T> &a,
+        Image2D<T> &b,
+        std::function<T (T, T)> func) {
+    Image2D<T> result(a.width1, a.width2);
+
+    for (double x = std::min(a.min_x, b.min_x); x <= std::max(a.max_x, b.max_x); x += a.width1) {
+        for (double y = std::min(a.min_y, b.min_y); y <= std::max(a.max_y, b.max_y); y += a.width2) {
+            result[x][y] = func(a[x][y], b[x][y]);
+        }
+    }
+
+    return result;
+}
+
+template<class T>
+T Image2D<T>::aggregate(std::function<T (T, T)> func) const {
+    std::vector<Image1D<T> const* > non_empty_parts;
+    for (Image1D<T> const& t : pos) {
+        if (!t.empty()) {
+            non_empty_parts.push_back(&t);
+        }
+    }
+    for (Image1D<T> const& t : neg) {
+        if (!t.empty()) {
+            non_empty_parts.push_back(&t);
+        }
+    }
+    if (non_empty_parts.empty()) {
+        return T();
+    }
+    T result = non_empty_parts.front()->aggregate(func);
+    if (non_empty_parts.size() == 1) {
+        return result;
+    }
+    for (size_t ii = 1; ii < non_empty_parts.size(); ++ii) {
+        result = func(result, non_empty_parts[ii]->aggregate(func));
+    }
+    return result;
+}
+
+template<class T>
 template<class U>
 void Image1D<T>::merge(QuantileStats<U> &stats) const {
     for (T const& data : pos) {
@@ -289,6 +381,9 @@ void Image1D<T>::merge(QuantileStats<U> &stats) const {
         stats.push_unsafe(data);
     }
 }
+
+template<class T>
+Image2D<T>::Image2D() : width1(1), width2(1) {}
 
 template void Image1D<float>::merge(QuantileStats<float> &stats) const;
 template void Image1D<QuantileStats<float> >::merge(QuantileStats<float> &stats) const;

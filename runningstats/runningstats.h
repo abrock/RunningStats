@@ -840,7 +840,7 @@ protected:
     std::vector<T> pos;
     std::vector<T> neg;
 
-    double const width;
+    double width;
 private:
     Image2D<T> * parent = nullptr;
 public:
@@ -857,18 +857,29 @@ public:
 
     template<class U>
     void merge(QuantileStats<U>& stats) const;
+
+    void setParent(Image2D<T> & p);
+
+    T aggregate(std::function<T(T,T)> func) const;
+
+    bool empty() const;
+
+    static T aggregate(std::vector<T> const& vec, std::function<T(T,T)> func);
 };
 
 template<class T>
 class Image2D {
-    double const width1;
-    double const width2;
+    double width1;
+    double width2;
 
     std::vector<Image1D<T> > pos;
     std::vector<Image1D<T> > neg;
 
 public:
     Image2D(double const _width1, const double _width2);
+
+    Image2D(Image2D<T> const& other);
+    Image2D();
 
     Image1D<T>& operator[](double const index);
 
@@ -886,6 +897,11 @@ public:
 
     template<class U>
     QuantileStats<U> merged() const;
+
+    static Image2D<T> mergeImages(Image2D<T> &a, Image2D<T> &b, std::function<T(T,T)> func);
+
+    T aggregate(std::function<T(T,T)> func) const;
+
 };
 
 } // namespace runningstats

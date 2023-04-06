@@ -390,6 +390,4 @@ std::string tostring(int64_t n) {
     return _res;
 }
 
-
-
 } // namespace runningstats
