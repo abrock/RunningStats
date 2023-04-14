@@ -61,6 +61,25 @@ std::string HistConfig::generateContours(const std::string &data_file) const {
     return result;
 }
 
+std::string HistConfig::createTics(const std::vector<double> &positions, const std::vector<std::string> &names) {
+    if (positions.size() != names.size()) {
+        throw std::runtime_error("Number of elements in position and name vectors must be the same but is different: " +
+                                 std::to_string(positions.size()) + " vs. " + std::to_string(names.size()));
+    }
+    if (positions.empty()) {
+        return "";
+    }
+    int mod = 1;
+    if (positions.size() > maxLabeledTics) {
+        mod = std::ceil(double(positions.size()) / maxLabeledTics);
+    }
+    std::stringstream result;
+    for (size_t ii = 0; ii < positions.size(); ++ii) {
+        result << '"' << (ii % mod == 0 ? names[ii] : "") << '"' << " " << positions[ii] << ", ";
+    }
+    return result.str();
+}
+
 std::string HistConfig::plotContours(const std::string &data_file) const {
     std::string result;
     for (auto const& it : contours) {
@@ -101,6 +120,12 @@ std::string HistConfig::toString() const {
     }
     if (fixedRatio) {
         out << "set size ratio -1;\n";
+    }
+    if (!xTics.empty()) {
+        out << "set xtics (" << xTics << ");\n";
+    }
+    if (!yTics.empty()) {
+        out << "set ytics (" << yTics << ");\n";
     }
     out << misc;
     return out.str();
@@ -324,6 +349,17 @@ HistConfig &HistConfig::addVerticalLine(const double x, const std::string color)
 
 HistConfig HistConfig::clone() const {
     return HistConfig(*this);
+}
+
+
+HistConfig& HistConfig::setXtics(const std::vector<double> &positions, const std::vector<std::string> &names) {
+    xTics = createTics(positions, names);
+    return *this;
+}
+
+HistConfig& HistConfig::setYtics(const std::vector<double> &positions, const std::vector<std::string> &names) {
+    yTics = createTics(positions, names);
+    return *this;
 }
 
 

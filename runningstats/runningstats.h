@@ -118,6 +118,26 @@ public:
      */
     bool logCB = false;
 
+    std::string xTics = "";
+    std::string yTics = "";
+
+    std::string createTics(std::vector<double> const& positions = {}, std::vector<std::string> const& names = {});
+
+    /**
+     * @brief Maximum number of tics which should be labeled. Relevant when manually setting tics, usually this is automatically done by Gnuplot.
+     */
+    size_t maxLabeledTics = 15;
+
+    /**
+     * @brief setXtics explicitly set every single x-tic by providing positions and names.
+     */
+    HistConfig &setXtics(std::vector<double> const& positions, std::vector<std::string> const& names);
+
+    /**
+     * @brief setYtics explicitly set every single y-tic by providing positions and names.
+     */
+    HistConfig &setYtics(std::vector<double> const& position, std::vector<std::string> const& names);
+
     /**
      * @brief absolute Use absolute bin counts instead of estimated probability densities
      */
