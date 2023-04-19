@@ -134,6 +134,34 @@ TEST(Image2D, minmax) {
     }
 }
 
+TEST(Image2D, colormaps) {
+    Image2D<double> test(1, 1);
+    // Fill with a simple gradient
+    for (int xx = -50; xx < 250; ++xx) {
+        double value = double(xx)/200;
+        value = std::min<double>(1, std::max<double>(0, value));
+        for (int yy = -10; yy < 20; ++yy) {
+            test[xx][yy] = value;
+        }
+    }
+    HistConfig conf;
+    conf.setTitle("Simple gradient experiment");
+    for (std::string const& map :
+    {
+         ColorMaps::blue_red(),
+         ColorMaps::blue_red_clipped(),
+         ColorMaps::blue_red_2(),
+         ColorMaps::viridis(),
+         ColorMaps::viridis_clipped(),
+    }
+         )
+    {
+    conf.setColorMap(map);
+        test.plot("gradient-" + map, conf.clone().setTitle("Gradient with colormap " + map));
+        test.plot("gradient-unclipped-" + map, conf.clone().setTitle("Unclipped gradient with colormap " + map).setMinMaxCB(-.01, 1.01));
+    }
+}
+
 TEST(Image1D, plot) {
     {
         Image1D<RunningStats> test(1);

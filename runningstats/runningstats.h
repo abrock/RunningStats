@@ -65,6 +65,9 @@ public:
     static std::string blue_red();
 
     static std::string blue_red_2();
+    static std::string viridis();
+    static std::string viridis_clipped();
+    static std::string blue_red_clipped();
 };
 
 class HistConfig {
