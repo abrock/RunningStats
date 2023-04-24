@@ -1,4 +1,4 @@
-#undef DNDEBUG
+#undef NDEBUG
 #include <cassert>
 #include <algorithm>
 #include <iostream>

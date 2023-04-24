@@ -22,6 +22,20 @@ std::string tostring(int64_t n);
 
 std::string escape(std::string const& str);
 
+struct LineSegment {
+    std::vector<std::pair<float, float> > data;
+
+    void addPt(float const x, float const y);
+};
+
+struct Line {
+    std::vector<LineSegment> data;
+
+    void addSegment(LineSegment const& seg);
+
+    std::string getFilename(const std::string &prefix, const std::string &suffix) const;
+};
+
 struct Contour {
     double value;
     std::string title;

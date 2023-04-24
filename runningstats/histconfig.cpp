@@ -1,4 +1,4 @@
-#undef DNDEBUG
+#undef NDEBUG
 #include <cassert>
 #include <algorithm>
 #include <iostream>
@@ -12,6 +12,13 @@
 
 namespace runningstats {
 
+void LineSegment::addPt(const float x, const float y) {
+    data.push_back({x,y});
+}
+
+std::string Line::getFilename(const std::string &prefix, const std::string & suffix) const {
+    return prefix + "-contour-" + suffix;
+}
 
 std::string Contour::generateContour(const std::string &data_file) const {
     return "\nset contour\n"
