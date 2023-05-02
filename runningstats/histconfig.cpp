@@ -16,8 +16,51 @@ void LineSegment::addPt(const float x, const float y) {
     data.push_back({x,y});
 }
 
+void Line::addSegment(LineSegment const& seg) {
+    data.push_back(seg);
+}
+
+std::vector<std::vector<std::pair<float, float> > > Line::getData() const {
+    std::vector<std::vector<std::pair<float, float> > > result;
+    for (LineSegment const& line : data) {
+        result.push_back(line.data);
+    }
+    return result;
+}
+
+void LineSegment::write(std::ostream& out) const {
+    out.precision(15);
+    for (const std::pair<float, float> &pair : data) {
+        out << pair.first << "\t" << pair.second << std::endl;
+    }
+    out << std::endl;
+}
+
+void Line::writeToFile(std::string const& filename) const {
+    std::ofstream out(filename, std::ostream::out);
+    for (LineSegment const& seg : data) {
+        seg.write(out);
+    }
+}
+
 std::string Line::getFilename(const std::string &prefix, const std::string & suffix) const {
-    return prefix + "-contour-" + suffix;
+    return prefix + "-contour-" + suffix + ".data";
+}
+
+bool Line::empty() const {
+    return data.empty();
+}
+
+bool LineSegment::empty() const {
+    return data.empty();
+}
+
+void Line::clear() {
+    data.clear();
+}
+
+void LineSegment::clear() {
+    data.clear();
 }
 
 std::string Contour::generateContour(const std::string &data_file) const {
@@ -60,6 +103,12 @@ HistConfig &HistConfig::addContour(const double value, const std::string title, 
     return *this;
 }
 
+HistConfig &HistConfig::addLine(Line const& l) {
+    lines.push_back(l);
+    return *this;
+}
+
+
 std::string HistConfig::generateContours(const std::string &data_file) const {
     std::string result;
     for (auto const& it : contours) {
@@ -93,6 +142,20 @@ std::string HistConfig::plotContours(const std::string &data_file) const {
         result += it.second.plotContour(data_file);
     }
     return result;
+}
+
+std::string HistConfig::plotLines(const std::string &prefix) const {
+    std::stringstream result;
+    for (size_t ii = 0; ii < lines.size(); ++ii) {
+        Line const& l = lines[ii];
+        std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
+        std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
+        std::string const fn = l.getFilename(prefix, "-line-" + std::to_string(ii) + l.title);
+        l.writeToFile(fn);
+        result << ", '" << escape(fn) << "'"
+            << " u 1:2 w l " << color << title;
+    }
+    return result.str();
 }
 
 HistConfig& HistConfig::setMaxPlotPts(int64_t val) {

@@ -49,6 +49,35 @@ TEST(Image2D, contours) {
     test.plot("gaussian", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := e^(-(x^2+y^2))").addContour(.5, ".5", "ffffff"));
 }
 
+TEST(Image2D, lines) {
+    double const step = 0.0125;
+    double const limit = 3;
+    Image2D<double> test(step, step);
+    for (double xx = -limit; xx <= limit; xx += step) {
+        for (double yy = -limit; yy <= limit; yy += step) {
+            test[xx][yy] = std::exp(-(xx*xx+yy*yy));
+        }
+    }
+    LineSegment l1, l2;
+    for (double angle = 0; angle <= 1; angle += .02) {
+        l1.addPt(2*std::cos(angle), 2*std::sin(angle));
+        l2.addPt(2*std::cos(M_PI + angle), 2*std::sin(M_PI + angle));
+    }
+    Line l;
+    l.color = "white";
+    l.addSegment(l1);
+    l.addSegment(l2);
+    HistConfig conf;
+    conf
+            .setXLabel("x")
+            .setYLabel("y")
+            .setTitle("f(x,y) := e^(-(x^2+y^2))")
+            .addLine(l)
+            .setColorMap(ColorMaps::viridis_clipped());
+    HistConfig copy = conf.clone();
+    test.plot("gaussian+lines", copy);
+}
+
 TEST(Image2D, plot_float) {
     Image2D<float> test(1, 1);
     for (double xx = 0; xx <= 100; ++xx) {

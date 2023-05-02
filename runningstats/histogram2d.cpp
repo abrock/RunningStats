@@ -116,6 +116,14 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
+    gnuplotio::Gnuplot plt;
+    for (size_t ii = 0; ii < conf.lines.size(); ++ii) {
+        Line const& l = conf.lines[ii];
+        std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
+        std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
+        cmd << ", " << plt.file(l.getData(), l.getFilename(prefix, "-line-" + std::to_string(ii) + conf.title))
+            << " u 1:2 w l " << color << title;
+    }
     cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term tikz;\n";
     //cmd << "set output '" << prefix << ".tex';\n";
@@ -123,7 +131,6 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     std::ofstream cmd_out(prefix + ".gpl");
     cmd_out << cmd.str();
     cmd_out.close();
-    gnuplotio::Gnuplot plt;
     plt << cmd.str();
 }
 
@@ -209,6 +216,13 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
         std::string title = extractor.title.empty() ? " notitle " : " title '" + escape(extractor.title) + "' ";
         std::string color = extractor.color.empty() ? " " : " lc rgb '" + escape(extractor.color) + "' ";
         cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l " << color << title;
+    }
+    for (size_t ii = 0; ii < conf.lines.size(); ++ii) {
+        Line const& l = conf.lines[ii];
+        std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
+        std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
+        cmd << ", " << plt.file(l.getData(), l.getFilename(prefix, "-line-" + std::to_string(ii) + conf.title))
+            << " u 1:2 w l " << color << title;
     }
     cmd << ";\n";
     cmd << conf.generateFormatCommands(prefix);

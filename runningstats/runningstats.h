@@ -26,18 +26,40 @@ struct LineSegment {
     std::vector<std::pair<float, float> > data;
 
     void addPt(float const x, float const y);
+
+    void write(std::ostream &out) const;
+
+    void clear();
+    bool empty() const;
 };
 
 struct Line {
+    std::string title;
+    std::string color;
     std::vector<LineSegment> data;
+
+    std::vector<std::vector<std::pair<float, float> > > getData() const;
 
     void addSegment(LineSegment const& seg);
 
     std::string getFilename(const std::string &prefix, const std::string &suffix) const;
+
+    bool empty() const;
+
+    void writeToFile(const std::string &filename) const;
+
+    void clear();
 };
 
 struct Contour {
+    /**
+     * @brief Value along which the contour shall be drawn
+     */
     double value;
+
+    /**
+     * @brief Title for plotting. An empty string will result in "notitle".
+     */
     std::string title;
     std::string color;
 
@@ -96,6 +118,8 @@ public:
      */
     std::map<double, Contour> contours;
 
+    std::vector<Line> lines;
+
     /**
      * @brief colormap name of the colormap to use.
      */
@@ -118,6 +142,8 @@ public:
             std::string const title = "",
             std::string const color = ""
                     );
+
+    HistConfig &addLine(Line const& l);
 
     /**
      * @brief generateContours generates the commands to make Gnuplot generate the contour data.
@@ -319,6 +345,8 @@ public:
      * @return
      */
     std::string plotContours(const std::string &data_file) const;
+
+    std::string plotLines(const std::string& prefix) const;
 };
 
 template<class T>
