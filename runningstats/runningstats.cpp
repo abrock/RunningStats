@@ -10,6 +10,8 @@
 
 #include "gnuplot-iostream.h"
 
+#include "misc.h"
+
 namespace runningstats {
 
 template<class T>
@@ -124,6 +126,7 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     double const size_x = limits_x.getMax() - limits_x.getMin();
     double const size_y = limits_y.getMax() - limits_y.getMin();
     double const margin = 0.04;
@@ -215,6 +218,7 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     std::string const percentage_file1 = prefix + "-percentages-over-threshold";
 
     gnuplotio::Gnuplot plt1;
+    Misc::make_target_dir(prefix);
     std::stringstream cmd1;
     cmd1 << "#!/usr/bin/gnuplot \n";
     cmd1 << "set term svg enhanced background rgb 'white';\n";

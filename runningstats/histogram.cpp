@@ -10,6 +10,8 @@
 
 #include "gnuplot-iostream.h"
 
+#include "misc.h"
+
 namespace runningstats {
 
 Histogram::Histogram(const double _bin_size) : bin_size(_bin_size) {
@@ -74,8 +76,6 @@ std::vector<std::pair<double, double> > Histogram::getAbsoluteHist() const {
             result.push_back(std::pair<double, double>(ii * bin_size, 0.0));
         }
     }
-
-
     return result;
 }
 
@@ -93,7 +93,6 @@ std::vector<std::pair<double, double> > Histogram::getRelativeHist() const {
             result.push_back(std::pair<double, double>(ii * bin_size, 0.0));
         }
     }
-
     return result;
 }
 
@@ -104,6 +103,7 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
 
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n";
@@ -220,6 +220,7 @@ bool Histogram2D::push_unsafe(const double val1, const double val2) {
 
 void Histogram2D::plotHist(const std::string prefix, const bool absolute) const {
     std::string const data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
     for (auto const& it : data) {
         double const row = width_1 * double(it.first);

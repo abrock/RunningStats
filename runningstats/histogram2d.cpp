@@ -10,6 +10,8 @@
 
 #include "gnuplot-iostream.h"
 
+#include "misc.h"
+
 namespace runningstats {
 
 Histogram2Dfixed::Histogram2Dfixed(
@@ -74,6 +76,7 @@ bool Histogram2Dfixed::push_unsafe(const double val1, const double val2) {
 
 void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf) const {
     std::string const data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
     if (conf.normalize_x) {
         for (size_t row = 0; row < data.size(); ++row) {
@@ -115,6 +118,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
+    cmd << conf.colorMapCmd();
     cmd << "plot '" << data_file << "' u 1:2:3 with image notitle ";
     cmd << conf.plotContours(data_file);
     cmd << conf.plotLines(data_file);
@@ -132,6 +136,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
 
 void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &conf) const {
     std::string const data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
     if (conf.normalize_x) {
         size_t col_sum = 0;
@@ -199,6 +204,7 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     cmd << "set view map;\n";
     cmd << "set pm3d corners2color c1;\n";
     cmd << "set key out horiz;\n";
+    cmd << conf.colorMapCmd();
     cmd << "splot '" << data_file << "' u 1:2:3 with pm3d notitle";
     for (HistConfig::ExtractConf const& extractor : conf.extractors) {
         std::vector<std::pair<double, double> > data_out;

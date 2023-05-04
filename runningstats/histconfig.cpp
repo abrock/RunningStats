@@ -10,6 +10,11 @@
 
 #include "gnuplot-iostream.h"
 
+#include "misc.h"
+
+#include <filesystem>
+namespace fs = std::filesystem;
+
 namespace runningstats {
 
 void LineSegment::addPt(const float x, const float y) {
@@ -37,6 +42,7 @@ void LineSegment::write(std::ostream& out) const {
 }
 
 void Line::writeToFile(std::string const& filename) const {
+    Misc::make_target_dir(filename);
     std::ofstream out(filename, std::ostream::out);
     for (LineSegment const& seg : data) {
         seg.write(out);
@@ -64,6 +70,7 @@ void LineSegment::clear() {
 }
 
 std::string Contour::generateContour(const std::string &data_file) const {
+    Misc::make_target_dir(data_file);
     return "\nset contour\n"
     "unset surface\n"
     "set cntrparam levels discrete " + std::to_string(value) + "\n"
@@ -76,6 +83,7 @@ std::string Contour::generateContour(const std::string &data_file) const {
 }
 
 std::string Contour::plotContour(const std::string &data_file) const {
+    Misc::make_target_dir(data_file);
     return
             ", '" + contoursFilename(data_file) + "' w l " +
             (color.empty() ? "" : "lc rgb '#" + color + "' ") +
@@ -166,6 +174,21 @@ HistConfig& HistConfig::setMaxPlotPts(int64_t val) {
 HistConfig &HistConfig::setIgnoreAmount(const double val) {
     ignore_amount = std::min(1.0, std::max(0.0, val));
     return *this;
+}
+
+std::string HistConfig::colorMapCmd() const {
+    std::stringstream cmd;
+    if (!colormap.empty()) {
+        std::string const pal_name = colormap + ".pal";
+        cmd << "load '" << pal_name << "';\n";
+        static std::mutex lock;
+        std::lock_guard guard(lock);
+        if (!fs::exists(pal_name)) {
+            std::ofstream colormap_out(pal_name);
+            colormap_out << ColorMaps().getColorMap(colormap) << std::endl;
+        }
+    }
+    return cmd.str();
 }
 
 std::string HistConfig::toString() const {

@@ -10,6 +10,8 @@
 
 #include "gnuplot-iostream.h"
 
+#include "misc.h"
+
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -122,6 +124,7 @@ T Image1D<T>::aggregate(const std::vector<T> &vec, std::function<T (T, T)> func)
 template<class T>
 void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::string const data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
     data2file(data_out, conf);
     std::stringstream cmd;
@@ -187,6 +190,7 @@ Image1D<T> &Image2D<T>::operator[](const double index) {
 template<class T>
 void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::string const data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
     data2file(data_out, conf);
     std::stringstream cmd;
@@ -194,6 +198,7 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << "\n";
+    cmd << conf.colorMapCmd();
     if (conf.flip_x) {
         cmd << "set xrange[" << max_x + width1/2 << ":" << min_x - width1/2 << "]; \n";
     }
@@ -205,16 +210,6 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     }
     else {
         cmd << "set yrange[" << min_y - width2/2 << ":" << max_y + width2/2 << "]; \n";
-    }
-    if (!conf.colormap.empty()) {
-        std::string const pal_name = conf.colormap + ".pal";
-        cmd << "load '" << pal_name << "';\n";
-        static std::mutex lock;
-        std::lock_guard guard(lock);
-        if (!fs::exists(pal_name)) {
-            std::ofstream colormap_out(pal_name);
-            colormap_out << ColorMaps().getColorMap(conf.colormap) << std::endl;
-        }
     }
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";

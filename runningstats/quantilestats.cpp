@@ -10,6 +10,8 @@
 
 #include "gnuplot-iostream.h"
 
+#include "misc.h"
+
 namespace runningstats {
 
 template<class T>
@@ -280,6 +282,7 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n"
         << "set output '" << prefix + ".png'; \n"
@@ -354,6 +357,7 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
     std::string data_file = prefix + ".data";
+    Misc::make_target_dir(data_file);
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n"
         << "set output '" << prefix + ".png'; \n"

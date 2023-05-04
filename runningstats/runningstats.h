@@ -347,6 +347,7 @@ public:
     std::string plotContours(const std::string &data_file) const;
 
     std::string plotLines(const std::string& prefix) const;
+    std::string colorMapCmd() const;
 };
 
 template<class T>
