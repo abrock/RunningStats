@@ -191,6 +191,12 @@ std::string HistConfig::colorMapCmd() const {
     return cmd.str();
 }
 
+HistConfig &HistConfig::setColorMap(const std::string &name) {
+    ColorMaps().getColorMap(name);
+    colormap = name;
+    return *this;
+}
+
 std::string HistConfig::toString() const {
     std::stringstream out;
     if (logCB) {

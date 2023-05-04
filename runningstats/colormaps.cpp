@@ -11,23 +11,32 @@ ColorMaps::ColorMaps() {
 }
 
 std::string ColorMaps::blue_red() {
-    return "blue-red";
+    return std::string("blue-red");
 }
 
 std::string ColorMaps::blue_red_clipped() {
-    return "blue-red-clipped";
+    return std::string("blue-red-clipped");
 }
 
 std::string ColorMaps::blue_red_2() {
-    return "blue-red-2";
+    return std::string("blue-red-2");
 }
 
 std::string ColorMaps::viridis() {
-    return "viridis";
+    return std::string("viridis");
 }
 
 std::string ColorMaps::viridis_clipped() {
-    return "viridis-clipped";
+    return std::string("viridis-clipped");
+}
+
+std::string ColorMaps::getColorMap(const std::string &name) {
+    auto const& it = colormaps.find(name);
+    if (colormaps.end() != it) {
+        return it->second;
+    }
+
+    throw std::runtime_error("Colormap " + name + " unknown");
 }
 
 }

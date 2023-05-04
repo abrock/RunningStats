@@ -88,14 +88,7 @@ struct Contour {
 class ColorMaps {
     std::map<std::string, std::string> colormaps;
 public:
-    std::string getColorMap(std::string const & name) {
-        auto const& it = colormaps.find(name);
-        if (colormaps.end() != it) {
-            return it->second;
-        }
-
-        throw std::runtime_error("Colormap " + name + " unknown");
-    }
+    std::string getColorMap(std::string const & name);
     ColorMaps();
 
     static std::string blue_red();
@@ -123,13 +116,9 @@ public:
     /**
      * @brief colormap name of the colormap to use.
      */
-    std::string colormap;
+    std::string colormap = "";
 
-    HistConfig& setColorMap(std::string const& name) {
-        ColorMaps().getColorMap(name);
-        colormap = name;
-        return *this;
-    }
+    HistConfig& setColorMap(std::string const& name);
 
     /**
      * @brief addContour adds an equipotential line to an image plot
