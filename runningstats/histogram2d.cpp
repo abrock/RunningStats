@@ -115,15 +115,10 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     cmd << "set yrange[" << min_2 - (range_2_empty ? 1:width_2/2) << " : " << max_2 + (range_2_empty ? 1:width_2/2) << "];\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
-    cmd << "plot '" << data_file << "' u 1:2:3 with image notitle;\n";
-    gnuplotio::Gnuplot plt;
-    for (size_t ii = 0; ii < conf.lines.size(); ++ii) {
-        Line const& l = conf.lines[ii];
-        std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
-        std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
-        cmd << ", " << plt.file(l.getData(), l.getFilename(prefix, "-line-" + std::to_string(ii) + conf.title))
-            << " u 1:2 w l " << color << title;
-    }
+    cmd << "plot '" << data_file << "' u 1:2:3 with image notitle ";
+    cmd << conf.plotContours(data_file);
+    cmd << conf.plotLines(data_file);
+    cmd << ";\n";
     cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term tikz;\n";
     //cmd << "set output '" << prefix << ".tex';\n";
@@ -131,6 +126,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     std::ofstream cmd_out(prefix + ".gpl");
     cmd_out << cmd.str();
     cmd_out.close();
+    gnuplotio::Gnuplot plt;
     plt << cmd.str();
 }
 
@@ -217,13 +213,8 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
         std::string color = extractor.color.empty() ? " " : " lc rgb '" + escape(extractor.color) + "' ";
         cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l " << color << title;
     }
-    for (size_t ii = 0; ii < conf.lines.size(); ++ii) {
-        Line const& l = conf.lines[ii];
-        std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
-        std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
-        cmd << ", " << plt.file(l.getData(), l.getFilename(prefix, "-line-" + std::to_string(ii) + conf.title))
-            << " u 1:2 w l " << color << title;
-    }
+    cmd << conf.plotContours(data_file);
+    cmd << conf.plotLines(data_file);
     cmd << ";\n";
     cmd << conf.generateFormatCommands(prefix);
     //cmd << "set term png;\n";
