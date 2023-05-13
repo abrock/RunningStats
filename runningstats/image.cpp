@@ -199,17 +199,26 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << "\n";
     cmd << conf.colorMapCmd();
+    double _min_x = min_x;
+    double _min_y = min_y;
+    double _max_x = max_x;
+    double _max_y = max_y;
+    conf.getLinesRect(_min_x, _min_y, _max_x, _max_y);
+    _min_x = std::min(_min_x, min_x) - width1/2;
+    _min_y = std::min(_min_y, min_y) - width2/2;
+    _max_x = std::max(_max_x, max_x) - width1/2;
+    _max_y = std::max(_max_y, max_y) - width2/2;
     if (conf.flip_x) {
-        cmd << "set xrange[" << max_x + width1/2 << ":" << min_x - width1/2 << "]; \n";
+        cmd << "set xrange[" << _max_x << ":" << _min_x << "]; \n";
     }
     else {
-        cmd << "set xrange[" << min_x - width1/2 << ":" << max_x + width1/2 << "]; \n";
+        cmd << "set xrange[" << _min_x << ":" << _max_x << "]; \n";
     }
     if (conf.flip_y) {
-        cmd << "set yrange[" << max_y + width2/2 << ":" << min_y - width2/2 << "]; \n";
+        cmd << "set yrange[" << _max_y << ":" << _min_y << "]; \n";
     }
     else {
-        cmd << "set yrange[" << min_y - width2/2 << ":" << max_y + width2/2 << "]; \n";
+        cmd << "set yrange[" << _min_y << ":" << _max_y << "]; \n";
     }
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
@@ -388,7 +397,7 @@ template void Image1D<QuantileStats<float> >::merge(QuantileStats<float> &stats)
 template<class T>
 template<class U>
 QuantileStats<U> Image2D<T>::merged() const {
-    QuantileStats<float> result;
+    QuantileStats<U> result;
     for (Image1D<T> const& data: pos) {
         data.merge(result);
     }

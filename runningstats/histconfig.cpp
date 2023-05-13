@@ -191,6 +191,29 @@ std::string HistConfig::colorMapCmd() const {
     return cmd.str();
 }
 
+void HistConfig::getLinesRect(double &min_x, double &min_y, double &max_x, double &max_y) const {
+    if (lines.empty()) {
+        return;
+    }
+    bool found_first = false;
+    for (Line const& l: lines) {
+        for (LineSegment const& s : l.data) {
+            for (std::pair<float, float> const& pt : s.data) {
+                if (!found_first) {
+                    min_x = max_x = pt.first;
+                    min_y = max_y = pt.second;
+                    found_first = true;
+                }
+                min_x = std::min<double>(min_x, pt.first);
+                max_x = std::max<double>(max_x, pt.first);
+
+                min_y = std::min<double>(min_y, pt.second);
+                max_y = std::max<double>(max_y, pt.second);
+            }
+        }
+    }
+}
+
 HistConfig &HistConfig::setColorMap(const std::string &name) {
     ColorMaps().getColorMap(name);
     colormap = name;
@@ -461,5 +484,24 @@ HistConfig& HistConfig::setYtics(const std::vector<double> &positions, const std
     return *this;
 }
 
+template<class T>
+HistConfig& HistConfig::setSymmetricCBRange(QuantileStats<T> const& stats, double quantile) {
+    quantile = std::min(1.0, std::max(0.0, quantile));
+    double const range = std::max(stats.getQuantile(quantile), stats.getQuantile(1.0 - quantile));
+    setMinMaxCB(-range, range);
+    return *this;
+}
+
+template HistConfig& HistConfig::setSymmetricCBRange(QuantileStats<float> const&, double);
+template HistConfig& HistConfig::setSymmetricCBRange(QuantileStats<double> const&, double);
+
+template<class T>
+HistConfig& HistConfig::setSymmetricCBRange(Image2D<T> const& stats, double quantile) {
+    setSymmetricCBRange(stats.template merged<float>(), quantile);
+    return *this;
+}
+
+template HistConfig& HistConfig::setSymmetricCBRange(Image2D<float> const&, double);
+template HistConfig& HistConfig::setSymmetricCBRange(Image2D<QuantileStats<float> > const&, double);
 
 } // namespace runningstats

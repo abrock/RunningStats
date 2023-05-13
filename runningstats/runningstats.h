@@ -99,12 +99,27 @@ public:
     static std::string blue_red_clipped();
 };
 
+template<class T>
+class QuantileStats;
+
+template<class T>
+class Image2D;
+
 class HistConfig {
 public:
     /**
      * @brief logX logarithmic scale of the x axis.
      */
     bool logX = false;
+
+    /**
+     * @brief getLinesRect computes the smallest rectangle covering all Line objects added to the config.
+     * @param tl_x
+     * @param tl_y
+     * @param br_x
+     * @param br_y
+     */
+    void getLinesRect(double& min_x, double& min_y, double& max_x, double& max_y) const;
 
     /**
      * @brief Contour configurations for equipotential lines.
@@ -337,6 +352,12 @@ public:
 
     std::string plotLines(const std::string& prefix) const;
     std::string colorMapCmd() const;
+
+    template<class T>
+    HistConfig& setSymmetricCBRange(QuantileStats<T> const& stats, double quantile);
+
+    template<class T>
+    HistConfig& setSymmetricCBRange(Image2D<T> const& stats, double quantile);
 };
 
 template<class T>

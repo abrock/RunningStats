@@ -59,9 +59,10 @@ TEST(Image2D, lines) {
         }
     }
     LineSegment l1, l2;
+    double const radius = 3.5;
     for (double angle = 0; angle <= 1; angle += .02) {
-        l1.addPt(2*std::cos(angle), 2*std::sin(angle));
-        l2.addPt(2*std::cos(M_PI + angle), 2*std::sin(M_PI + angle));
+        l1.addPt(radius*std::cos(angle), radius*std::sin(angle));
+        l2.addPt(radius*std::cos(M_PI + angle), radius*std::sin(M_PI + angle));
     }
     Line l;
     l.color = "white";
