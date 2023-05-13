@@ -220,6 +220,8 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     else {
         cmd << "set yrange[" << _min_y << ":" << _max_y << "]; \n";
     }
+    cmd << "set object rectangle from " << _min_x << "," << _min_y << " to " << _max_x << "," << _max_y <<
+           " behind fillcolor rgb '" << escape(conf.bg_color) << "' fillstyle solid noborder;\n";
     cmd << "set xtics out;\n";
     cmd << "set ytics out;\n";
     if (conf.min_cb > -std::numeric_limits<double>::max()) {

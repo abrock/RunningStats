@@ -112,6 +112,10 @@ public:
      */
     bool logX = false;
 
+    std::string bg_color = "white";
+
+    HistConfig& setBG(std::string const& color);
+
     /**
      * @brief getLinesRect computes the smallest rectangle covering all Line objects added to the config.
      * @param tl_x

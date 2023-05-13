@@ -75,7 +75,7 @@ TEST(Image2D, lines) {
             .setTitle("f(x,y) := e^(-(x^2+y^2))")
             .addLine(l)
             .setColorMap(ColorMaps::viridis_clipped());
-    HistConfig copy = conf.clone();
+    HistConfig copy = conf.clone().setBG("#444444");
     test.plot("gaussian+lines", copy);
 }
 

@@ -191,6 +191,11 @@ std::string HistConfig::colorMapCmd() const {
     return cmd.str();
 }
 
+HistConfig& HistConfig::setBG(const std::string &color) {
+    bg_color = color;
+    return *this;
+}
+
 void HistConfig::getLinesRect(double &min_x, double &min_y, double &max_x, double &max_y) const {
     if (lines.empty()) {
         return;
