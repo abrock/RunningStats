@@ -592,6 +592,8 @@ public:
     double log_min = 0;
     double log_max = 0;
     size_t log_n = 0;
+
+    bool empty() const;
 };
 
 

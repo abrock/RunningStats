@@ -176,4 +176,8 @@ std::string RunningStats::printBoth() const {
     return print() + "\nLogarithmic: " + printLog();
 }
 
+bool RunningStats::empty() const {
+    return 0 == n;
+}
+
 } // namespace runningstats
