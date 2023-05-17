@@ -87,6 +87,12 @@ TEST(Image2D, plot_float) {
         }
     }
     test.plot("float x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y"));
+    Image2D<float> copy(test);
+    double a = 2;
+    double b = -50;
+    auto lambda = [a,b](float x) {return a*x+b;};
+    copy.applyFunction(lambda);
+    copy.plot("float x,y->y, copy", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y"));
 }
 
 TEST(Image2D, extractor) {
