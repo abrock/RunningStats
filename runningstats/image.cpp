@@ -159,6 +159,10 @@ Image2D<T>::Image2D(const Image2D<T> &other) {
     width2 = other.width2;
     pos = other.pos;
     neg = other.neg;
+    max_x = other.max_x;
+    max_y = other.max_y;
+    min_x = other.min_x;
+    min_y = other.min_y;
     for (Image1D<T> & it : pos) {
         it.setParent(*this);
     }
