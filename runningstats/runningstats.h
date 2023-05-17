@@ -947,6 +947,8 @@ public:
     bool empty() const;
 
     static T aggregate(std::vector<T> const& vec, std::function<T(T,T)> func);
+
+    void applyFunction(std::function<T (T)> func);
 };
 
 template<class T>
@@ -983,6 +985,18 @@ public:
     static Image2D<T> mergeImages(Image2D<T> &a, Image2D<T> &b, std::function<T(T,T)> func);
 
     T aggregate(std::function<T(T,T)> func) const;
+
+    void applyFunction(std::function<T(T)> func);
+
+    /**
+     * @brief extractQuantile extracts a given quantile from an Image2D<QuantileStats>
+     * @param quantile
+     * @param default_val
+     * @return
+     */
+    Image2D<float> extractQuantile(
+            double const quantile,
+            const float default_val = std::numeric_limits<float>::quiet_NaN());
 
 };
 

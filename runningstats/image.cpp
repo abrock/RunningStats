@@ -383,6 +383,68 @@ T Image2D<T>::aggregate(std::function<T (T, T)> func) const {
 }
 
 template<class T>
+void Image2D<T>::applyFunction(std::function<T (T)> func) {
+    for (Image1D<T>& val : pos) {
+        val.applyFunction(func);
+    }
+    for (Image1D<T>& val : neg) {
+        val.applyFunction(func);
+    }
+}
+
+namespace {
+template<class T>
+float get_quantile(T const& input, double const quantile, float const default_val) {
+    return input;
+}
+
+template<>
+float get_quantile(QuantileStats<float> const& input, double const quantile, float const default_val) {
+    if (input.empty()) {
+        return default_val;
+    }
+    return input.getQuantile(quantile);
+}
+
+template<>
+float get_quantile(std::vector<QuantileStats<float> > const& input, double const quantile, float const default_val) {
+    if (input.empty()) {
+        return default_val;
+    }
+    return input[0].getQuantile(quantile);
+}
+
+template<>
+float get_quantile(RunningStats const& input, double const quantile, float const default_val) {
+    if (input.empty()) {
+        return default_val;
+    }
+    return input.getMean();
+}
+}
+
+template<class T>
+Image2D<float> Image2D<T>::extractQuantile(const double quantile, const float default_val) {
+    Image2D<float> result(width1, width2);
+    for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
+        for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
+            result[xx][yy] = get_quantile(this->operator[](xx)[yy], quantile, default_val);
+        }
+    }
+    return result;
+}
+
+template<class T>
+void Image1D<T>::applyFunction(std::function<T(T)> func) {
+    for (T& val : pos) {
+        val = func(val);
+    }
+    for (T& val : neg) {
+        val = func(val);
+    }
+}
+
+template<class T>
 template<class U>
 void Image1D<T>::merge(QuantileStats<U> &stats) const {
     for (T const& data : pos) {
