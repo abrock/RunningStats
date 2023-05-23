@@ -962,6 +962,9 @@ class Image2D {
 public:
     Image2D(double const _width1, const double _width2);
 
+    double getBinX() const {return width1;};
+    double getBinY() const {return width2;};
+
     Image2D(Image2D<T> const& other);
     Image2D();
 
