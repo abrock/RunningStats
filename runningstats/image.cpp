@@ -44,6 +44,7 @@ T &Image1D<T>::operator[](double index) {
 
 template<>
 void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_val; xx <= max_val + width/2; xx += width) {
         out << xx << "\t" ;
         switch (conf.extract) {
@@ -64,6 +65,7 @@ void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
 
 template<>
 void Image1D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_val; xx <= max_val + width/2; xx += width) {
         out << xx << "\t" ;
         switch (conf.extract) {
@@ -80,6 +82,7 @@ void Image1D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf)
 
 template<class T>
 void Image1D<T>::data2file(std::ostream& out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_val; xx <= max_val + width/2; xx += width) {
         out << xx << "\t" << (this->operator[](xx)) << std::endl;
     }
@@ -277,6 +280,7 @@ void Image2D<T>::push_unsafe(const double x, const double y, const std::vector<d
 
 template<>
 void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
             out << xx << "\t" << yy << "\t";
@@ -296,6 +300,7 @@ void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
 
 template<>
 void Image2D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
             out << xx << "\t" << yy << "\t";
@@ -312,6 +317,7 @@ void Image2D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf)
 
 template<>
 void Image2D<std::vector<QuantileStats<float> > >::data2file(std::ostream &out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
             out << xx << "\t" << yy;
@@ -334,6 +340,7 @@ void Image2D<std::vector<QuantileStats<float> > >::data2file(std::ostream &out, 
 
 template<class T>
 void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
+    disable_thousands_separator(out);
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {
             out << xx << "\t" << yy << "\t" << (this->operator[](xx))[yy] << std::endl;

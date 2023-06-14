@@ -221,6 +221,7 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     gnuplotio::Gnuplot plt1;
     Misc::make_target_dir(prefix);
     std::stringstream cmd1;
+    disable_thousands_separator(cmd1);
     cmd1 << "#!/usr/bin/gnuplot \n";
     cmd1 << "set term svg enhanced background rgb 'white';\n";
     cmd1 << "set output '" << prefix << "-threshold.svg';\n";
@@ -234,6 +235,7 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
 
     gnuplotio::Gnuplot plt2;
     std::stringstream cmd2;
+    disable_thousands_separator(cmd2);
     cmd2 << "#!/usr/bin/gnuplot \n";
     cmd2 << "set term svg enhanced background rgb 'white';\n";
     cmd2 << "set output '" << prefix << "-percentage.svg';\n";

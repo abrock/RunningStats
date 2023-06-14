@@ -78,6 +78,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     std::string const data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
+    disable_thousands_separator(data_out);
     if (conf.normalize_x) {
         for (size_t row = 0; row < data.size(); ++row) {
             std::vector<size_t> const& row_data = data[row];
@@ -139,6 +140,7 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     std::string const data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
+    disable_thousands_separator(data_out);
     if (conf.normalize_x) {
         size_t col_sum = 0;
         for (size_t col = 0; col < data.size(); ++col) {

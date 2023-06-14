@@ -35,6 +35,7 @@ std::vector<std::vector<std::pair<float, float> > > Line::getData() const {
 
 void LineSegment::write(std::ostream& out) const {
     out.precision(15);
+    disable_thousands_separator(out);
     for (const std::pair<float, float> &pair : data) {
         out << pair.first << "\t" << pair.second << std::endl;
     }
@@ -154,6 +155,7 @@ std::string HistConfig::plotContours(const std::string &data_file) const {
 
 std::string HistConfig::plotLines(const std::string &prefix) const {
     std::stringstream result;
+    disable_thousands_separator(result);
     for (size_t ii = 0; ii < lines.size(); ++ii) {
         Line const& l = lines[ii];
         std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
@@ -227,6 +229,7 @@ HistConfig &HistConfig::setColorMap(const std::string &name) {
 
 std::string HistConfig::toString() const {
     std::stringstream out;
+    disable_thousands_separator(out);
     if (logCB) {
         out << "set logscale cb;\n";
     }
@@ -324,6 +327,7 @@ void HistConfig::addFormat(const std::string &fmt) {
 
 std::string HistConfig::generateFormatCommands(std::string const& prefix) const {
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     for (std::string const& fmt : formats) {
         if ("svg" == fmt) {
             cmd << "set term svg enhanced background rgb 'white';\n";

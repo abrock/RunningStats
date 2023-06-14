@@ -54,10 +54,6 @@ std::string BinaryStats::print() const {
                 getFalseCount(), getFalsePercent(),
                 getTotalCount()
                 );
-    out << "True: " << count_true << " (" << getPercent() << "%), "
-        << "False: " << getFalseCount() << " (" << getFalsePercent() << "%), "
-        << "Total: " << getTotalCount();
-    return out.str();
 }
 
 void BinaryStats::clear() {

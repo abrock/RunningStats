@@ -226,6 +226,7 @@ void Histogram2D::plotHist(const std::string prefix, const bool absolute) const 
     std::string const data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     std::ofstream data_out(data_file);
+    disable_thousands_separator(data_out);
     for (auto const& it : data) {
         double const row = width_1 * double(it.first);
         for (const double col_id: bins_2) {
@@ -255,6 +256,7 @@ void Histogram2D::plotHist(const std::string prefix, const bool absolute) const 
         data_out << std::endl;
     }
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
