@@ -25,6 +25,7 @@ target_link_libraries(${LIBRARY_NAME}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
+    fmt::fmt
 )
 
 # Install library
