@@ -495,6 +495,27 @@ TEST(All, CopyConstructors) {
     }
 }
 
+TEST(Misc, disable_thousands_separator) {
+    size_t const num = 1'000;
+
+    std::stringstream out1;
+    out1 << num;
+    EXPECT_EQ(out1.str().size(), 4) << out1.str();
+
+    std::locale::global(std::locale(""));
+
+    std::stringstream out2;
+    out2 << num;
+    EXPECT_EQ(out2.str().size(), 5) << out2.str();
+
+    std::stringstream out3;
+    runningstats::disable_thousands_separator(out3);
+    out3 << num;
+    EXPECT_EQ(out3.str().size(), 4) << out3.str();
+
+
+}
+
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     std::cout << "RUN_ALL_TESTS return value: " << RUN_ALL_TESTS() << std::endl;

@@ -125,6 +125,7 @@ void Ellipses::push(const std::tuple<double, double, double, double> &val) {
 void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     std::string data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     double const size_x = limits_x.getMax() - limits_x.getMin();
@@ -392,6 +393,12 @@ std::string tostring(int64_t n) {
         _res += result[ii];
     }
     return _res;
+}
+
+void disable_thousands_separator(std::ostream &out) {
+    std::locale loc("");
+    // imbue loc and add your own facet:
+    out.imbue(std::locale(loc, new no_separator()));
 }
 
 } // namespace runningstats

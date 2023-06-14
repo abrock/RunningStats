@@ -102,6 +102,7 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     }
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     std::string data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
 
@@ -188,7 +189,10 @@ double Histogram::getPosteriorProbability() const {
 std::string Histogram::getXrange(const HistConfig &conf) const {
     double _min = std::max(min, conf.min_x);
     double _max = std::min(max, conf.max_x);
-    return std::string("set xrange[") + std::to_string(_min) + ":" + std::to_string(_max) + "];\n";
+    std::stringstream out;
+    disable_thousands_separator(out);
+    out << "set xrange[" << _min << ":" << _max << "];" << std::endl;
+    return out.str();
 }
 
 Histogram2D::Histogram2D(const double _bin_1, const double _bin_2) : width_1(_bin_1), width_2(_bin_2) {

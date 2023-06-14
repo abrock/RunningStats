@@ -108,6 +108,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
         }
     }
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);
     cmd << "#!/usr/bin/gnuplot \n";
@@ -190,6 +191,7 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
         data_out << std::endl;
     }
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     gnuplotio::Gnuplot plt;
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);

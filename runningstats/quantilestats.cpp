@@ -120,8 +120,10 @@ std::string QuantileStats<T>::getXrange(const HistConfig &conf) const {
         _min = std::max(_min, double(getQuantile(conf.ignore_amount/2)));
         _max = std::min(_max, double(getQuantile(1.0 - conf.ignore_amount/2)));
     }
-
-    return std::string("set xrange[") + std::to_string(_min) + ":" + std::to_string(_max) + "];\n";
+    std::stringstream out;
+    disable_thousands_separator(out);
+    out << "set xrange[" << _min << ":" << _max << "];\n";
+    return out.str();
 }
 
 template<class T>
@@ -281,6 +283,7 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     std::string data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     cmd << "#!/usr/bin/gnuplot \n";
@@ -356,6 +359,7 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
 
     gnuplotio::Gnuplot gpl;
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     std::string data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     cmd << "#!/usr/bin/gnuplot \n";

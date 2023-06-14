@@ -128,6 +128,7 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::ofstream data_out(data_file);
     data2file(data_out, conf);
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";
@@ -198,6 +199,7 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::ofstream data_out(data_file);
     data2file(data_out, conf);
     std::stringstream cmd;
+    disable_thousands_separator(cmd);
     cmd << "#!/usr/bin/gnuplot \n";
     cmd << "set term png;\n";
     cmd << "set output '" << prefix << ".png';\n";

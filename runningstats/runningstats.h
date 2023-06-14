@@ -15,6 +15,14 @@
 
 namespace runningstats {
 
+struct no_separator : std::numpunct<char> {
+protected:
+    virtual string_type do_grouping() const
+        { return "\000"; } // groups of 0 (disable)
+};
+
+void disable_thousands_separator(std::ostream& out);
+
 #define READ_BIN(in, data) (in.read(reinterpret_cast<char*>(&data), sizeof data))
 #define WRITE_BIN(out, data) {out.write(reinterpret_cast<const char*>(&data), sizeof data);}
 
