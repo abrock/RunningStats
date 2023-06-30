@@ -126,12 +126,8 @@ public:
 
     /**
      * @brief getLinesRect computes the smallest rectangle covering all Line objects added to the config.
-     * @param tl_x
-     * @param tl_y
-     * @param br_x
-     * @param br_y
      */
-    void getLinesRect(double& min_x, double& min_y, double& max_x, double& max_y) const;
+    void getLinesRect(double& _min_x, double& _min_y, double& _max_x, double& _max_y) const;
 
     /**
      * @brief Contour configurations for equipotential lines.
@@ -153,9 +149,8 @@ public:
      * @param title
      * @param color
      */
-    HistConfig &addContour(
-            double const value,
-            std::string const title = "",
+    HistConfig &addContour(double const value,
+            std::string const _title = "",
             std::string const color = ""
                     );
 
@@ -338,9 +333,9 @@ public:
     HistConfig& setLogX(bool const val = true);
     HistConfig& setLogY(bool const val = true);
     HistConfig& setLogCB(bool const val = true);
-    HistConfig& setMinMaxCB(double min_cb, double max_cb);
-    HistConfig& setMinCB(double min_cb);
-    HistConfig& setMaxCB(double max_cb);
+    HistConfig& setMinMaxCB(double _min_cb, double _max_cb);
+    HistConfig& setMinCB(double _min_cb);
+    HistConfig& setMaxCB(double _max_cb);
     HistConfig& setAbsolute(bool const val = true);
     HistConfig& setRelative(bool const val = true);
     HistConfig& setFixedRatio(bool const val = true);

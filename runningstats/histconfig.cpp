@@ -107,8 +107,8 @@ HistConfig &HistConfig::setMinMaxY(const double min, const double max) {
     return *this;
 }
 
-HistConfig &HistConfig::addContour(const double value, const std::string title, const std::string color) {
-    contours[value] = {value, title, color};
+HistConfig &HistConfig::addContour(const double value, const std::string _title, const std::string color) {
+    contours[value] = {value, _title, color};
     return *this;
 }
 
@@ -158,12 +158,12 @@ std::string HistConfig::plotLines(const std::string &prefix) const {
     disable_thousands_separator(result);
     for (size_t ii = 0; ii < lines.size(); ++ii) {
         Line const& l = lines[ii];
-        std::string title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
-        std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
-        std::string const fn = l.getFilename(prefix, "-line-" + std::to_string(ii) + l.title);
+        const std::string _title = l.title.empty() ? " notitle " : " title '" + escape(l.title) + "' ";
+        const std::string color = l.color.empty() ? " " : " lc rgb '" + escape(l.color) + "' ";
+        const std::string fn = l.getFilename(prefix, "-line-" + std::to_string(ii) + l.title);
         l.writeToFile(fn);
         result << ", '" << escape(fn) << "'"
-            << " u 1:2 w l " << color << title;
+            << " u 1:2 w l " << color << _title;
     }
     return result.str();
 }
@@ -198,7 +198,7 @@ HistConfig& HistConfig::setBG(const std::string &color) {
     return *this;
 }
 
-void HistConfig::getLinesRect(double &min_x, double &min_y, double &max_x, double &max_y) const {
+void HistConfig::getLinesRect(double &_min_x, double &_min_y, double &_max_x, double &_max_y) const {
     if (lines.empty()) {
         return;
     }
@@ -207,15 +207,15 @@ void HistConfig::getLinesRect(double &min_x, double &min_y, double &max_x, doubl
         for (LineSegment const& s : l.data) {
             for (std::pair<float, float> const& pt : s.data) {
                 if (!found_first) {
-                    min_x = max_x = pt.first;
-                    min_y = max_y = pt.second;
+                    _min_x = _max_x = pt.first;
+                    _min_y = _max_y = pt.second;
                     found_first = true;
                 }
-                min_x = std::min<double>(min_x, pt.first);
-                max_x = std::max<double>(max_x, pt.first);
+                _min_x = std::min<double>(_min_x, pt.first);
+                _max_x = std::max<double>(_max_x, pt.first);
 
-                min_y = std::min<double>(min_y, pt.second);
-                max_y = std::max<double>(max_y, pt.second);
+                _min_y = std::min<double>(_min_y, pt.second);
+                _max_y = std::max<double>(_max_y, pt.second);
             }
         }
     }
@@ -416,19 +416,19 @@ HistConfig &HistConfig::setLogCB(bool const val) {
     return *this;
 }
 
-HistConfig &HistConfig::setMinMaxCB(double min_cb, double max_cb) {
-    this->min_cb = min_cb;
-    this->max_cb = max_cb;
+HistConfig &HistConfig::setMinMaxCB(double _min_cb, double _max_cb) {
+    this->min_cb = _min_cb;
+    this->max_cb = _max_cb;
     return *this;
 }
 
-HistConfig &HistConfig::setMinCB(double min_cb) {
-    this->min_cb = min_cb;
+HistConfig &HistConfig::setMinCB(double _min_cb) {
+    this->min_cb = _min_cb;
     return *this;
 }
 
-HistConfig &HistConfig::setMaxCB(double max_cb) {
-    this->max_cb = max_cb;
+HistConfig &HistConfig::setMaxCB(double _max_cb) {
+    this->max_cb = _max_cb;
     return *this;
 }
 

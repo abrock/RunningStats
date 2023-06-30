@@ -183,8 +183,8 @@ double WeightedRunningStats::getVar() const {
     if (n <= 0 || weight_sum <= 0) {
         return 0;
     }
-    double const mean = getMean();
-    return (squaresum - 2 * mean * sum + mean * mean * weight_sum) / weight_sum;
+    double const _mean = getMean();
+    return (squaresum - 2 * _mean * sum + _mean * _mean * weight_sum) / weight_sum;
 }
 
 double WeightedRunningStats::getStddev() const {

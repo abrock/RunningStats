@@ -432,9 +432,9 @@ double QuantileStats<T>::getAccurateVariance() const {
         return 0;
     }
     double square_sum = 0;
-    const double mean = getMean();
+    const double _mean = getMean();
     for (const T val : values) {
-        square_sum += (val - mean) * (val - mean);
+        square_sum += (val - _mean) * (val - _mean);
     }
     return square_sum / (n-1);
 }
@@ -489,15 +489,15 @@ double QuantileStats<T>::getTrimmedMean(const T & ignore) const {
 
 template<class T>
 template<class U>
-void QuantileStats<T>::push(const std::vector<U> &values) {
+void QuantileStats<T>::push(const std::vector<U> &_values) {
     std::lock_guard guard(push_mutex);
-    push_unsafe(values);
+    push_unsafe(_values);
 }
 
 template<class T>
 template<class U>
-void QuantileStats<T>::push_unsafe(const std::vector<U> &values) {
-    for (const U value : values) {
+void QuantileStats<T>::push_unsafe(const std::vector<U> &_values) {
+    for (const U value : _values) {
         push_unsafe(value);
     }
 }

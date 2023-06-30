@@ -211,17 +211,17 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     cmd << conf.colorMapCmd();
     cmd << "splot '" << data_file << "' u 1:2:3 with pm3d notitle";
     for (HistConfig::ExtractConf const& extractor : conf.extractors) {
-        std::vector<std::pair<double, double> > data_out;
-        data_out.reserve(data.size());
+        std::vector<std::pair<double, double> > extractor_data_out;
+        extractor_data_out.reserve(data.size());
         for (size_t col = 0; col < data.size(); ++col) {
             QuantileStats<float> const& col_data = stats_per_column[col];
             double const row_bin = width_1 * col + min_1;
-            data_out.push_back({row_bin, col_data.getStat(extractor.ex, extractor.value)});
+            extractor_data_out.push_back({row_bin, col_data.getStat(extractor.ex, extractor.value)});
         }
         std::string extract_name = extractor.getName();
         std::string title = extractor.title.empty() ? " notitle " : " title '" + escape(extractor.title) + "' ";
         std::string color = extractor.color.empty() ? " " : " lc rgb '" + escape(extractor.color) + "' ";
-        cmd << ", " << plt.file(data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l " << color << title;
+        cmd << ", " << plt.file(extractor_data_out, prefix + extract_name + ".data") << " u 1:2:(0.0) w l " << color << title;
     }
     cmd << conf.plotContours(data_file);
     cmd << conf.plotLines(data_file);

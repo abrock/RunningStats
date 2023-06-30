@@ -118,9 +118,9 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
 
     cmd << getXrange(conf);
 
-    auto const data = conf.absolute ? getAbsoluteHist() : getRelativeHist();
+    auto const hist_data = conf.absolute ? getAbsoluteHist() : getRelativeHist();
 
-    cmd << "plot " << gpl.file1d(data, data_file) << " w boxes notitle; \n";
+    cmd << "plot " << gpl.file1d(hist_data, data_file) << " w boxes notitle; \n";
     //cmd << "set term tikz; \n";
     //cmd << "set output '" << prefix << ".tex'; \n";
     //cmd << "replot;\n";
