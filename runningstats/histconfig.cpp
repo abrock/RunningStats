@@ -422,6 +422,16 @@ HistConfig &HistConfig::setMinMaxCB(double min_cb, double max_cb) {
     return *this;
 }
 
+HistConfig &HistConfig::setMinCB(double min_cb) {
+    this->min_cb = min_cb;
+    return *this;
+}
+
+HistConfig &HistConfig::setMaxCB(double max_cb) {
+    this->max_cb = max_cb;
+    return *this;
+}
+
 HistConfig &HistConfig::setAbsolute(const bool val) {
     absolute = val;
     return *this;
@@ -491,6 +501,10 @@ HistConfig& HistConfig::setXtics(const std::vector<double> &positions, const std
 HistConfig& HistConfig::setYtics(const std::vector<double> &positions, const std::vector<std::string> &names) {
     yTics = createTics(positions, names);
     return *this;
+}
+
+std::string HistConfig::cbRangeToString() const {
+    return "set cbrange " + Misc::range2string(min_cb, max_cb) + ";\n";
 }
 
 template<class T>

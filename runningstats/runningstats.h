@@ -223,8 +223,10 @@ public:
     double min_y = -std::numeric_limits<double>::max();
     double max_y = std::numeric_limits<double>::max();
 
-    double min_cb = -std::numeric_limits<double>::max();
-    double max_cb = std::numeric_limits<double>::max();
+    double min_cb = std::numeric_limits<double>::quiet_NaN();
+    double max_cb = std::numeric_limits<double>::quiet_NaN();
+
+    std::string cbRangeToString() const;
 
     double ignore_amount = 0;
 
@@ -337,6 +339,8 @@ public:
     HistConfig& setLogY(bool const val = true);
     HistConfig& setLogCB(bool const val = true);
     HistConfig& setMinMaxCB(double min_cb, double max_cb);
+    HistConfig& setMinCB(double min_cb);
+    HistConfig& setMaxCB(double max_cb);
     HistConfig& setAbsolute(bool const val = true);
     HistConfig& setRelative(bool const val = true);
     HistConfig& setFixedRatio(bool const val = true);
