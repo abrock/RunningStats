@@ -8,10 +8,9 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <functional>
 
 #include <mutex>
-
-#include <boost/multiprecision/float128.hpp>
 
 namespace runningstats {
 
