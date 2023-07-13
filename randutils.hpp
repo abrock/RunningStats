@@ -342,20 +342,20 @@ void seed_seq_fe<count,IntRep,mix_rounds>::param(OutputIterator dest) const
         auto hash_const = INIT_A*fast_exp(MULT_A, IntRep(count * count));
 
         for (auto src = mixer_copy.rbegin(); src != mixer_copy.rend(); ++src)
-            for (auto dest = mixer_copy.rbegin(); dest != mixer_copy.rend();
-                 ++dest)
-                if (src != dest) {
+            for (auto local_dest = mixer_copy.rbegin(); local_dest != mixer_copy.rend();
+                 ++local_dest)
+                if (src != local_dest) {
                     IntRep revhashed = *src;
                     auto mult_const = hash_const;
                     hash_const *= INV_A;
                     revhashed ^= hash_const;
                     revhashed *= mult_const;
                     revhashed ^= revhashed >> XSHIFT;
-                    IntRep unmixed = *dest;
+                    IntRep unmixed = *local_dest;
                     unmixed ^= unmixed >> XSHIFT;
                     unmixed += MIX_MULT_R*revhashed;
                     unmixed *= MIX_INV_L;
-                    *dest = unmixed;
+                    *local_dest = unmixed;
                 }
         for (auto i = mixer_copy.rbegin(); i != mixer_copy.rend(); ++i) {
             IntRep unhashed = *i;
@@ -463,9 +463,9 @@ class auto_seeded : public SeedSeq {
 
         // The heap can vary from run to run as well.
         void* malloc_addr = malloc(sizeof(int));
-        free(malloc_addr);
         auto heap  = hash(malloc_addr);
         auto stack = hash(&malloc_addr);
+        free(malloc_addr);
 
         // Every call, we increment our random int.  We don't care about race
         // conditons.  The more, the merrier.
@@ -520,8 +520,7 @@ class auto_seeded : public SeedSeq {
         auto cpu = crushto32(RANDUTILS_CPU_ENTROPY);
 
         return {{random_int, crushto32(hitime), stack, heap, self_data,
-                 self_func, exit_func, thread_id, type_id, pid, cpu,
-                 compile_stamp, time_func}};
+                 self_func, exit_func, thread_id, type_id, pid, cpu, compile_stamp, time_func}};
     }
 
 
@@ -576,6 +575,33 @@ using uniform_distribution = typename std::conditional<
               std::uniform_int_distribution<Numeric>,
               std::uniform_real_distribution<Numeric> >::type;
 
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Argument dependent lookup (ADL) utilities
+//
+//////////////////////////////////////////////////////////////////////////////
+
+namespace adl_detail
+{
+
+// begin and end are customization points, so they should be called
+// via ADL:
+
+using std::begin;
+using std::end;
+
+template<class It>
+auto begin_(It&& it) -> decltype(begin(std::forward<It>(it))) {
+    return begin(std::forward<It>(it));
+}
+
+template<class It>
+auto end_(It&& it) -> decltype(begin(std::forward<It>(it))) {
+    return begin(std::forward<It>(it));
+}
+
+}  // namespace adl_detail
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -727,7 +753,7 @@ public:
               typename... Params>
     void generate(Range&& range, Params&&... params)
     {
-        generate<DistTmpl>(std::begin(range), std::end(range),
+        generate<DistTmpl>(adl_detail::begin_(range), adl_detail::end_(range),
                            std::forward<Params>(params)...);
     }
 
@@ -740,33 +766,40 @@ public:
     template <typename Range>
     void shuffle(Range&& range)
     {
-        shuffle(std::begin(range), std::end(range));
+        shuffle(adl_detail::begin_(range), adl_detail::end_(range));
     }
 
-
-    template <typename Iter>
-    Iter choose(Iter first, Iter last)
+    template <typename ForwardIt>
+    typename std::enable_if<
+        std::is_convertible<
+            typename std::iterator_traits<ForwardIt>::iterator_category,
+            std::forward_iterator_tag
+            >::value,
+        ForwardIt
+        >::type
+    choose(ForwardIt first, ForwardIt last)
     {
         auto dist = std::distance(first, last);
         if (dist < 2)
             return first;
         using distance_type = decltype(dist);
         distance_type choice = uniform(distance_type(0), --dist);
-        std::advance(first, choice);
+        using std::advance;
+        advance(first, choice);
         return first;
     }
 
     template <typename Range>
-    auto choose(Range&& range) -> decltype(std::begin(range))
+    auto choose(Range&& range) -> decltype(adl_detail::begin_(range))
     {
-        return choose(std::begin(range), std::end(range));
+        return choose(adl_detail::begin_(range), adl_detail::end_(range));
     }
 
 
     template <typename Range>
-    auto pick(Range&& range) -> decltype(*std::begin(range))
+    auto pick(Range&& range) -> decltype(*adl_detail::begin_(range))
     {
-        return *choose(std::begin(range), std::end(range));
+        return *choose(adl_detail::begin_(range), adl_detail::end_(range));
     }
 
     template <typename T>
@@ -779,7 +812,8 @@ public:
     template <typename Size, typename Iter>
     Iter sample(Size to_go, Iter first, Iter last)
     {
-        auto total = std::distance(first, last);
+        using std::distance;
+        auto total = distance(first, last);
         using value_type = decltype(*first);
 
         return std::stable_partition(first, last,
@@ -797,9 +831,9 @@ public:
     }
 
     template <typename Size, typename Range>
-    auto sample(Size to_go, Range&& range) -> decltype(std::begin(range))
+    auto sample(Size to_go, Range&& range) -> decltype(adl_detail::begin_(range))
     {
-        return sample(to_go, std::begin(range), std::end(range));
+        return sample(to_go, adl_detail::begin_(range), adl_detail::end_(range));
     }
 };
 
