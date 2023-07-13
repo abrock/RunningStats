@@ -215,8 +215,8 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     conf.getLinesRect(_min_x, _min_y, _max_x, _max_y);
     _min_x = std::min(_min_x, min_x) - width1/2;
     _min_y = std::min(_min_y, min_y) - width2/2;
-    _max_x = std::max(_max_x, max_x) - width1/2;
-    _max_y = std::max(_max_y, max_y) - width2/2;
+    _max_x = std::max(_max_x, max_x) + width1/2;
+    _max_y = std::max(_max_y, max_y) + width2/2;
     if (conf.flip_x) {
         cmd << "set xrange[" << _max_x << ":" << _min_x << "]; \n";
     }

@@ -37,6 +37,16 @@ TEST(Image2D, plot) {
     test.plot("x,y->y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := y"));
 }
 
+TEST(Image2D, plot_int) {
+    Image2D<double> test(1, 1);
+    for (int xx = 0; xx <= 5; ++xx) {
+        for (int yy = 0; yy <= 5; ++yy) {
+            test[xx][yy] = xx+yy;
+        }
+    }
+    test.plot("x,y->x+y", HistConfig().setXLabel("x").setYLabel("y").setTitle("f(x,y) := x+y"));
+}
+
 TEST(Image2D, contours) {
     double const step = 0.0125;
     double const limit = 3;
