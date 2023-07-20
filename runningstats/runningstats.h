@@ -262,7 +262,8 @@ public:
         Variance,
         Quantile,
         MeanAndStddev,
-        MedianAndIQR
+        MedianAndIQR,
+        Count
     };
 
     static std::string extractName(Extract const e);
@@ -317,6 +318,7 @@ public:
 
     HistConfig& setMaxBins(int const nx, int const ny);
 
+    HistConfig& extractCount();
     HistConfig& extractMean();
     HistConfig& extractMedian();
     HistConfig& extractTrimmedMean(double const param = 0.5);

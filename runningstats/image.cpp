@@ -59,6 +59,7 @@ void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
         case HistConfig::Extract::MedianAndIQR: out << (this->operator[](xx)).getMedian() << "\t"
                                                                                           << (this->operator[](xx)).getQuantile(.25) << "\t"
                                                                                                                                      << (this->operator[](xx)).getQuantile(.75) << std::endl; break;
+        case HistConfig::Extract::Count: out << (this->operator[](xx)).getCount() << std::endl; break;
         }
     }
 }
@@ -74,6 +75,7 @@ void Image1D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf)
         case HistConfig::Extract::Variance: out << (this->operator[](xx)).getVar() << std::endl; break;
         case HistConfig::Extract::MeanAndStddev: out << (this->operator[](xx)).getMean() << "\t"
                                                                                          << (this->operator[](xx)).getStddev() << std::endl; break;
+        case HistConfig::Extract::Count: out << (this->operator[](xx)).getCount() << std::endl; break;
         default: throw std::runtime_error("RunningStats does not provide the requested extractor");
         }
     }
@@ -289,6 +291,7 @@ void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
             case HistConfig::Extract::Median: out << (this->operator[](xx))[yy].getMedian() << std::endl; break;
             case HistConfig::Extract::TrimmedMean: out << (this->operator[](xx))[yy].getTrimmedMean(conf.extractParam) << std::endl; break;
             case HistConfig::Extract::Quantile: out << (this->operator[](xx))[yy].getQuantile(conf.extractParam) << std::endl; break;
+            case HistConfig::Extract::Count: out << (this->operator[](xx))[yy].getCount() << std::endl; break;
             default: throw std::runtime_error("Extractor not implemented for Image2D");
             }
         }
@@ -306,6 +309,7 @@ void Image2D<RunningStats>::data2file(std::ostream &out, const HistConfig &conf)
             case HistConfig::Extract::Mean: out << (this->operator[](xx))[yy].getMean() << std::endl; break;
             case HistConfig::Extract::Stddev: out << (this->operator[](xx))[yy].getStddev() << std::endl; break;
             case HistConfig::Extract::Variance: out << (this->operator[](xx))[yy].getVar() << std::endl; break;
+            case HistConfig::Extract::Count: out << (this->operator[](xx))[yy].getCount() << std::endl; break;
             default: throw std::runtime_error("RunningStats does not provide the requested extractor");
             }
         }
@@ -327,6 +331,7 @@ void Image2D<std::vector<QuantileStats<float> > >::data2file(std::ostream &out, 
                 case HistConfig::Extract::Median: out << "\t" << it.getMedian(); break;
                 case HistConfig::Extract::Quantile: out << "\t" << it.getQuantile(conf.extractParam); break;
                 case HistConfig::Extract::TrimmedMean: out << "\t" << it.getTrimmedMean(conf.extractParam); break;
+                case HistConfig::Extract::Count: out << "\t" << it.getCount(); break;
                 default: throw std::runtime_error("QuantileStats does not provide the requested extractor");
                 }
             }

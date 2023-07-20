@@ -166,6 +166,7 @@ double QuantileStats<T>::getStat(const HistConfig::Extract type, const double pa
     case HistConfig::Extract::Stddev: return getStddev();
     case HistConfig::Extract::TrimmedMean: return getTrimmedMean(param);
     case HistConfig::Extract::Variance: return getVar();
+    case HistConfig::Extract::Count: return getCount();
     default: break;
     }
     throw std::runtime_error("Extract type not available");

@@ -271,6 +271,7 @@ std::string HistConfig::extractName(const HistConfig::Extract e) {
     case Extract::Quantile: return "Quantile";
     case Extract::MeanAndStddev: return "MeanAndStddev";
     case Extract::MedianAndIQR: return "MedianAndIQR";
+    case Extract::Count: return "Count";
     }
     return "Unknown";
 }
@@ -281,6 +282,7 @@ std::string HistConfig::ExtractConf::getName() const {
     case Extract::Median : return extractName(ex);
     case Extract::Stddev : return extractName(ex);
     case Extract::Variance : return extractName(ex);
+    case Extract::Count: return extractName(ex);
     default: break;
     }
     std::string result = extractName(ex) + "-" + std::to_string(value);
@@ -293,6 +295,7 @@ std::string HistConfig::ExtractConf::getName() const {
 
 HistConfig::Extract HistConfig::str2extract(std::string s) {
     transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if (s == "count") return Extract::Count;
     if (s == "mean") return Extract::Mean;
     if (s == "median") return Extract::Median;
     if (s == "trimmedmean") return Extract::TrimmedMean;
@@ -361,6 +364,11 @@ HistConfig &HistConfig::setNormalizeX(bool value) {
 HistConfig &HistConfig::setMaxBins(const int nx, const int ny) {
     max_nx = nx;
     max_ny = ny;
+    return *this;
+}
+
+HistConfig &HistConfig::extractCount() {
+    extract = Extract::Count;
     return *this;
 }
 
