@@ -398,9 +398,12 @@ std::string tostring(int64_t n) {
 }
 
 void disable_thousands_separator(std::ostream &out) {
-    std::locale loc("");
-    // imbue loc and add your own facet:
-    out.imbue(std::locale(loc, new no_separator()));
+    try {
+        std::locale loc("");
+        // imbue loc and add your own facet:
+        out.imbue(std::locale(loc, new no_separator()));
+    }
+    catch (...) {}
 }
 
 } // namespace runningstats
