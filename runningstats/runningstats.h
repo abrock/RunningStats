@@ -549,6 +549,20 @@ public:
     void push(const std::vector<double>& data);
 
     /**
+     * @brief push_repeated calls push(value) count times. This is useful when data from an existing histogram should be pushed into the object.
+     * @param value
+     * @param count
+     */
+    void push_repeated(const double value, const size_t count);
+
+    /**
+     * @brief push_repeated_unsafe calls push_unsafe(value) count times. This is useful when data from an existing histogram should be pushed into the object.
+     * @param value
+     * @param count
+     */
+    void push_repeated_unsafe(const double value, const size_t count);
+
+    /**
      * @brief push_unsafe adds a value to the statistics. This function must not be called from multiple threads at the same time.
      * @param value
      */

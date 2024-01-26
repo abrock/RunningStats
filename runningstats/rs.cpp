@@ -83,6 +83,23 @@ void RunningStats::push(const std::vector<double> &data) {
     }
 }
 
+void RunningStats::push_repeated(const double value, const size_t count) {
+    if (!std::isfinite(value)) {
+        return;
+    }
+    std::lock_guard guard(push_mutex);
+    push_repeated_unsafe(value, count);
+}
+
+void RunningStats::push_repeated_unsafe(const double value, const size_t count) {
+    if (!std::isfinite(value)) {
+        return;
+    }
+    for (size_t ii = 0; ii < count; ++ii) {
+        push_unsafe(value);
+    }
+}
+
 void RunningStats::push_unsafe(const double value) {
     if (!std::isfinite(value)) {
         return;
