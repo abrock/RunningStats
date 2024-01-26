@@ -33,6 +33,25 @@ void QuantileStats<T>::push_unsafe(const double value) {
 }
 
 template<class T>
+void QuantileStats<T>::push_repeated(const double value, const size_t count) {
+    if (!std::isfinite(value)) {
+        return;
+    }
+    std::lock_guard guard(push_mutex);
+    push_repeated_unsafe(value, count);
+}
+
+template<class T>
+void QuantileStats<T>::push_repeated_unsafe(const double value, const size_t count) {
+    if (!std::isfinite(value)) {
+        return;
+    }
+    for (size_t ii = 0; ii < count; ++ii) {
+        push_unsafe(value);
+    }
+}
+
+template<class T>
 template<class U>
 void QuantileStats<T>::push_unsafe(QuantileStats<U> const& other) {
     push_unsafe(other.values);
