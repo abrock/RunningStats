@@ -509,6 +509,45 @@ public:
     double getStddev() const;
 };
 
+/**
+ * @brief The MeanFromHist class allows the user to calculate the mean value of a histogram by pushing midpoint-count pairs into an object.
+ */
+class MeanFromHist {
+    double sum = 0;
+    size_t n = 0;
+    size_t n_bins = 0;
+protected:
+    mutable std::mutex push_mutex;
+
+public:
+
+    MeanFromHist();
+    MeanFromHist(MeanFromHist const& rhs);
+    MeanFromHist & operator = (const MeanFromHist & other);
+
+    /**
+     * @brief push adds a value-count pair to the statistics.
+     * This basically calls push_unsafe inside a block guarded by the push_mutex.
+     * @param value
+     * @param count
+     */
+    void push(double const value, size_t const count);
+
+    /**
+     * @brief push_unsafe adds a value-count pair to the statistics.
+     * This function must not be called from multiple threads at the same time.
+     * @param value
+     * @param count
+     */
+    void push_unsafe(double const value, size_t const count);
+
+    double getMean() const;
+
+    size_t getCount() const;
+
+    size_t getBinCount() const;
+};
+
 class RunningStats {
 
 protected:
@@ -541,7 +580,7 @@ public:
     void clear();
 
     /**
-     * @brief push add a value to the statistics. This basically calls push_unsafe inside a #pragma omp critical block.
+     * @brief push adds a value to the statistics. This basically calls push_unsafe inside a block guarded by the push_mutex.
      * @param value
      */
     void push(const double value);
