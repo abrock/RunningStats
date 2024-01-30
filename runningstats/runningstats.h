@@ -516,6 +516,9 @@ class MeanFromHist {
     double sum = 0;
     size_t n = 0;
     size_t n_bins = 0;
+
+    double min = 0;
+    double max = 0;
 protected:
     mutable std::mutex push_mutex;
 
@@ -546,6 +549,10 @@ public:
     size_t getCount() const;
 
     size_t getBinCount() const;
+
+    double getMin() const;
+
+    double getMax() const;
 };
 
 class RunningStats {
