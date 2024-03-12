@@ -60,6 +60,10 @@ void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
                                                                                           << (this->operator[](xx)).getQuantile(.25) << "\t"
                                                                                                                                      << (this->operator[](xx)).getQuantile(.75) << std::endl; break;
         case HistConfig::Extract::Count: out << (this->operator[](xx)).getCount() << std::endl; break;
+        case HistConfig::Extract::InterQuantileRange:
+            out << (this->operator[](xx)).getQuantile(1.0 - conf.extractParam)
+                    - (this->operator[](xx)).getQuantile(conf.extractParam)
+                    << std::endl; break;
         }
     }
 }
@@ -292,6 +296,10 @@ void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
             case HistConfig::Extract::TrimmedMean: out << (this->operator[](xx))[yy].getTrimmedMean(conf.extractParam) << std::endl; break;
             case HistConfig::Extract::Quantile: out << (this->operator[](xx))[yy].getQuantile(conf.extractParam) << std::endl; break;
             case HistConfig::Extract::Count: out << (this->operator[](xx))[yy].getCount() << std::endl; break;
+            case HistConfig::Extract::InterQuantileRange:
+                out << (this->operator[](xx))[yy].getQuantile(1.0 - conf.extractParam)
+                        - (this->operator[](xx))[yy].getQuantile(conf.extractParam)
+                        << std::endl; break;
             default: throw std::runtime_error("Extractor not implemented for Image2D");
             }
         }
@@ -332,6 +340,10 @@ void Image2D<std::vector<QuantileStats<float> > >::data2file(std::ostream &out, 
                 case HistConfig::Extract::Quantile: out << "\t" << it.getQuantile(conf.extractParam); break;
                 case HistConfig::Extract::TrimmedMean: out << "\t" << it.getTrimmedMean(conf.extractParam); break;
                 case HistConfig::Extract::Count: out << "\t" << it.getCount(); break;
+                case HistConfig::Extract::InterQuantileRange:
+                    out << it.getQuantile(1.0 - conf.extractParam)
+                            - it.getQuantile(conf.extractParam)
+                            << std::endl; break;
                 default: throw std::runtime_error("QuantileStats does not provide the requested extractor");
                 }
             }

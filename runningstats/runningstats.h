@@ -263,7 +263,8 @@ public:
         Quantile,
         MeanAndStddev,
         MedianAndIQR,
-        Count
+        Count,
+        InterQuantileRange
     };
 
     static std::string extractName(Extract const e);
@@ -327,6 +328,15 @@ public:
     HistConfig& extractQuantile(double const param = 0.5);
     HistConfig& extractMeanAndStddev();
     HistConfig& extractMedianAndIQR();
+
+    /**
+     * @brief extractRange extracts an inter-quantile range,
+     * for example for param = 0.1 is extracts the difference between
+     * the 90th percentile and the 10th percentile.
+     * @param param
+     * @return
+     */
+    HistConfig& extractRange(double const param = 0.1);
 
     HistConfig& setMinMaxX(double const min, double const max);
     HistConfig& setMinMaxY(double const min, double const max);

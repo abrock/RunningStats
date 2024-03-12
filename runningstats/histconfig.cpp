@@ -272,6 +272,7 @@ std::string HistConfig::extractName(const HistConfig::Extract e) {
     case Extract::MeanAndStddev: return "MeanAndStddev";
     case Extract::MedianAndIQR: return "MedianAndIQR";
     case Extract::Count: return "Count";
+    case Extract::InterQuantileRange: return "InterQuantileRange";
     }
     return "Unknown";
 }
@@ -406,6 +407,12 @@ HistConfig &HistConfig::extractMeanAndStddev() {
 
 HistConfig &HistConfig::extractMedianAndIQR() {
     extract = Extract::MedianAndIQR;
+    return *this;
+}
+
+HistConfig &HistConfig::extractRange(const double param) {
+    extract = Extract::InterQuantileRange;
+    this->extractParam = param;
     return *this;
 }
 
