@@ -525,7 +525,7 @@ std::string HistConfig::cbRangeToString() const {
 template<class T>
 HistConfig& HistConfig::setSymmetricCBRange(QuantileStats<T> const& stats, double quantile) {
     quantile = std::min(1.0, std::max(0.0, quantile));
-    double const range = std::max(stats.getQuantile(quantile), stats.getQuantile(1.0 - quantile));
+    double const range = std::max(std::abs(stats.getQuantile(quantile)), std::abs(stats.getQuantile(1.0 - quantile)));
     setMinMaxCB(-range, range);
     return *this;
 }
