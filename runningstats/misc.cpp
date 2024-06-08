@@ -19,3 +19,8 @@ std::string Misc::range2string(const double min, const double max) {
     std::string const _max = std::isfinite(max) ? std::to_string(max) : "";
     return "[" + _min + ":" + _max + "]";
 }
+
+std::string Misc::replace_empty(const std::string &val, const std::string &replacement) {
+    return val.empty() ? replacement : val;
+}
+

@@ -134,15 +134,36 @@ std::string HistConfig::createTics(const std::vector<double> &positions, const s
     if (positions.empty()) {
         return "";
     }
+    std::vector<double> _positions = positions;
+    std::vector<std::string> _names = names;
+    sortTics(_positions, _names);
     int mod = 1;
-    if (positions.size() > maxLabeledTics) {
-        mod = std::ceil(double(positions.size()) / maxLabeledTics);
+    if (_positions.size() > maxLabeledTics) {
+        mod = std::ceil(double(_positions.size()) / maxLabeledTics);
     }
     std::stringstream result;
-    for (size_t ii = 0; ii < positions.size(); ++ii) {
-        result << '"' << (ii % mod == 0 ? names[ii] : "") << '"' << " " << positions[ii] << ", ";
+    for (size_t ii = 0; ii < _positions.size(); ++ii) {
+        result << '"' << (ii % mod == 0 ? _names[ii] : "") << '"' << " " << _positions[ii] << ", ";
     }
     return result.str();
+}
+
+void HistConfig::sortTics(
+        std::vector<double> &positions,
+        std::vector<std::string> &names) {
+    std::vector<std::pair<double, std::string> > combined;
+    for (size_t ii = 0; ii < positions.size() && ii < names.size(); ++ii) {
+        combined.push_back({positions[ii], names[ii]});
+    }
+    std::sort(combined.begin(), combined.end(), [](auto &left, auto &right) {
+        return left.first < right.first;
+    });
+    positions.clear();
+    names.clear();
+    for (auto const& it : combined) {
+        positions.push_back(it.first);
+        names.push_back(it.second);
+    }
 }
 
 std::string HistConfig::plotContours(const std::string &data_file) const {
@@ -188,6 +209,33 @@ std::string HistConfig::colorMapCmd() const {
         if (!fs::exists(pal_name)) {
             std::ofstream colormap_out(pal_name);
             colormap_out << ColorMaps().getColorMap(colormap) << std::endl;
+        }
+    }
+    return cmd.str();
+}
+
+HistConfig &HistConfig::setFlipCDF(bool val) {
+    flip_cdf = val;
+    return *this;
+}
+
+std::string HistConfig::makeCdfDataLabel(std::string const& axis) const {
+    std::string const data_label = escape(Misc::replace_empty(dataLabel, "X"));
+    std::stringstream cmd;
+    if (absolute) {
+        if (flip_cdf) {
+            cmd << "set " << axis << "label 'Count(" << data_label << ">)';\n";
+        }
+        else {
+            cmd << "set " << axis << "label 'Count(" << data_label << "<)';\n";
+        }
+    }
+    else {
+        if (flip_cdf) {
+            cmd << "set " << axis << "label 'P(" << data_label << ">)';\n";
+        }
+        else {
+            cmd << "set " << axis << "label 'P(" << data_label << "<)';\n";
         }
     }
     return cmd.str();
@@ -239,12 +287,8 @@ std::string HistConfig::toString() const {
     if (logY) {
         out << "set logscale y;\n";
     }
-    if (!xLabel.empty()) {
-        out << "set xlabel '" << escape(xLabel) << "';\n";
-    }
-    if (!yLabel.empty()) {
-        out << "set ylabel '" << escape(yLabel) << "';\n";
-    }
+    out << "set xlabel '" << escape(Misc::replace_empty(xLabel, "x")) << "';\n";
+    out << "set ylabel '" << escape(Misc::replace_empty(yLabel, "y")) << "';\n";
     if (!title.empty()) {
         out << "set title '" << escape(title) << "';\n";
     }

@@ -354,7 +354,9 @@ void Image2D<std::vector<QuantileStats<float> > >::data2file(std::ostream &out, 
 }
 
 template<class T>
-void Image2D<T>::data2file(std::ostream &out, const HistConfig &conf) {
+void Image2D<T>::data2file(
+        std::ostream &out,
+        const HistConfig &conf) {
     disable_thousands_separator(out);
     for (double xx = min_x; xx <= max_x + width1/2; xx += width1) {
         for (double yy = min_y; yy <= max_y + width2/2; yy += width2) {

@@ -19,7 +19,8 @@ struct Misc
      * @return
      */
     static std::string range2string(double const min, double const max);
-};
 
+    static std::string replace_empty(std::string const& val, std::string const& replacement);
+};
 
 #endif // MISC_H

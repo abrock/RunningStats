@@ -358,19 +358,36 @@ TEST(plot, plotHist) {
 }
 
 TEST(plot, QuantileStats_plotHist) {
-    runningstats::QuantileStats<double> h;
+    runningstats::QuantileStats<double> h, h42;
     std::normal_distribution<double> dist;
-    for (size_t ii = 0; ii < 5'000; ++ii) {
+    for (size_t ii = 0; ii < 4'000; ++ii) {
         h.push(dist(rng));
     }
     h.plotHist("test-plot-quantile-hist", 0.1, false);
-    h.plotCDF("test-plot-quantile-cdf");
-    h.plotCDF("test-plot-quantile-cdf-absolute", HistConfig().setAbsolute());
+    h.plotCDF("test-plot-quantile-cdf-4k");
+    h.plotCDF("test-plot-quantile-cdf-4k-flipped",
+              HistConfig().setFlipCDF());
+    h.plotCDF("test-plot-quantile-cdf-4k-flipped-log",
+              HistConfig().setFlipCDF()
+              .setLogY());
+    h.plotCDF("test-plot-quantile-cdf-4k-absolute",
+              HistConfig().setAbsolute());
+    h.plotCDF("test-plot-quantile-cdf-4k-absolute-flipped",
+              HistConfig().setAbsolute()
+              .setFlipCDF());
+    h.plotCDF("test-plot-quantile-cdf-4k-absolute-flipped-log",
+              HistConfig().setAbsolute()
+              .setFlipCDF()
+              .setLogY());
+
     HistConfig conf;
     conf.setXLabel("random value").setYLabel("density").setTitle("Testing HistConf");
     h.plotHist("test-plot-quantile-hist-conf", h.FreedmanDiaconisBinSize(), conf);
 
-    for (size_t ii = 0; ii < 95*1000; ++ii) {
+    for (size_t ii = 0; ii < 42'000; ++ii) {
+        h42.push(dist(rng));
+    }
+    for (size_t ii = 0; ii < 96'000; ++ii) {
         h.push(dist(rng));
     }
     h.plotHist("test-plot-quantile-hist-100k", h.FreedmanDiaconisBinSize(), false);
@@ -379,7 +396,25 @@ TEST(plot, QuantileStats_plotHist) {
 #pragma omp section
         h.plotCDF("test-plot-quantile-cdf-100k");
 #pragma omp section
+        h.plotCDF("test-plot-quantile-cdf-100k-flipped", HistConfig().setFlipCDF());
+#pragma omp section
+        h42.plotCDF("test-plot-quantile-cdf-42k-flipped", HistConfig().setFlipCDF());
+#pragma omp section
+        h.plotCDF("test-plot-quantile-cdf-100k-flipped-log",
+                  HistConfig().setFlipCDF()
+                  .setLogY());
+#pragma omp section
         h.plotCDF("test-plot-quantile-cdf-100k-absolute", HistConfig().setAbsolute());
+#pragma omp section
+        h.plotCDF("test-plot-quantile-cdf-100k-absolute-flipped", HistConfig().setAbsolute().setFlipCDF());
+#pragma omp section
+        h.plotCDF("test-plot-quantile-cdf-100k-absolute-flipped-log",
+                  HistConfig().setAbsolute().setFlipCDF()
+                  .setLogY());
+#pragma omp section
+        h42.plotCDF("test-plot-quantile-cdf-42k-absolute-flipped-log",
+                  HistConfig().setAbsolute().setFlipCDF()
+                  .setLogY());
     }
     conf.setXLabel("random value").setYLabel("density").setTitle("Testing HistConf");
     h.plotHist("test-plot-quantile-hist-conf-100k", h.FreedmanDiaconisBinSize(), conf);

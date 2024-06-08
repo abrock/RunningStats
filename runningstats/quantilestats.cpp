@@ -312,18 +312,33 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
         << conf.toString()
         << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
 
-    if (!conf.dataLabel.empty()) {
-        cmd << "set xlabel '" << escape(conf.dataLabel) << "';\n";
-    }
-    cmd << "set ylabel 'Estimated CDF';\n";
-
+    std::string const data_label = escape(Misc::replace_empty(conf.dataLabel, "X"));
+    cmd << "set xlabel '" << data_label << "';\n";
 
     cmd << getXrange(conf);
 
+    cmd << conf.makeCdfDataLabel("y");
+
     {
         std::lock_guard guard(push_mutex);
-        cmd << "plot " << gpl.file(values, data_file) << " u 1:"
-            << (conf.absolute ? "0" : "($0/" + std::to_string(values.size()-1) + ")") << " w l notitle; \n";
+        cmd << "plot " << gpl.file(values, data_file) << " u 1:";
+        if (conf.absolute) {
+            if (conf.flip_cdf) {
+                cmd << "(" << (getCount()-1) << " - $0)";
+            }
+            else {
+                cmd << "0";
+            }
+        }
+        else {
+            if (conf.flip_cdf) {
+                cmd << "(1-$0/" + std::to_string(values.size()-1) + ")";
+            }
+            else {
+                cmd << "($0/" + std::to_string(values.size()-1) + ")";
+            }
+        }
+        cmd << " w l notitle; \n";
     }
     //cmd << "set term tikz; \n"
     //<< "set output '" << prefix << ".tex'; \n"
@@ -388,14 +403,14 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
         << conf.toString()
         << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
 
-    if (!conf.dataLabel.empty()) {
-        cmd << "set xlabel '" << escape(conf.dataLabel) << "';\n";
-    }
-    cmd << "set ylabel 'Estimated CDF';\n";
-
     cmd << getXrange(conf);
 
-    cmd << "plot " << gpl.file(plot_values, data_file) << " u 1:2 w l notitle; \n";
+    cmd << conf.makeCdfDataLabel("y");
+
+    cmd << "plot " << gpl.file(plot_values, data_file) << " u 1:";
+    double const max_y_val = conf.absolute ? getCount() : 1;
+    cmd << (conf.flip_cdf ? "(" + std::to_string(max_y_val) + "-$2)" : "2");
+    cmd << " w l notitle; \n";
     //cmd << "set term tikz; \n"
     // << "set output '" << prefix << ".tex'; \n"
     // << "replot;\n";

@@ -176,6 +176,8 @@ public:
 
     std::string createTics(std::vector<double> const& positions = {}, std::vector<std::string> const& names = {});
 
+    static void sortTics(std::vector<double> & positions, std::vector<std::string> & names);
+
     /**
      * @brief Maximum number of tics which should be labeled. Relevant when manually setting tics, usually this is automatically done by Gnuplot.
      */
@@ -380,6 +382,17 @@ public:
 
     template<class T>
     HistConfig& setSymmetricCBRange(Image2D<T> const& stats, double quantile);
+
+    bool flip_cdf = false;
+
+    /**
+     * @brief setFlipCDF enables or disables flipping the y-axis of the CDF (cumulative distribution function)
+     * @param val
+     * @return
+     */
+    HistConfig& setFlipCDF(bool val = true);
+
+    std::string makeCdfDataLabel(const std::string &axis) const;
 };
 
 template<class T>
