@@ -317,6 +317,7 @@ std::string HistConfig::extractName(const HistConfig::Extract e) {
     case Extract::MedianAndIQR: return "MedianAndIQR";
     case Extract::Count: return "Count";
     case Extract::InterQuantileRange: return "InterQuantileRange";
+    case Extract::AbsMedianToQuantileRangeRatio: return "AbsMedianToQuantileRangeRatio";
     }
     return "Unknown";
 }
@@ -452,6 +453,16 @@ HistConfig &HistConfig::extractQuantileRange(const double param) {
 
 HistConfig &HistConfig::extractQuartileRange() {
     return extractQuantileRange(0.25);
+}
+
+HistConfig &HistConfig::extractAbsMedianToQuantileRangeRatio(const double param) {
+    extract = Extract::AbsMedianToQuantileRangeRatio;
+    extractParam = param;
+    return *this;
+}
+
+HistConfig &HistConfig::extractAbsMedianToQuartileRangeRatio() {
+    return extractAbsMedianToQuantileRangeRatio(0.25);
 }
 
 HistConfig &HistConfig::extractMeanAndStddev() {

@@ -64,6 +64,10 @@ void Image1D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
             out << (this->operator[](xx)).getQuantile(1.0 - conf.extractParam)
                     - (this->operator[](xx)).getQuantile(conf.extractParam)
                     << std::endl; break;
+        case HistConfig::Extract::AbsMedianToQuantileRangeRatio:
+            out << std::abs((this->operator[](xx)).getMedian())/((this->operator[](xx)).getQuantile(1.0 - conf.extractParam)
+                    - (this->operator[](xx)).getQuantile(conf.extractParam))
+                    << std::endl; break;
         }
     }
 }
@@ -299,6 +303,10 @@ void Image2D<QuantileStats<float> >::data2file(std::ostream &out, const HistConf
             case HistConfig::Extract::InterQuantileRange:
                 out << (this->operator[](xx))[yy].getQuantile(1.0 - conf.extractParam)
                         - (this->operator[](xx))[yy].getQuantile(conf.extractParam)
+                        << std::endl; break;
+            case HistConfig::Extract::AbsMedianToQuantileRangeRatio:
+                out << std::abs((this->operator[](xx))[yy].getMedian())/((this->operator[](xx))[yy].getQuantile(1.0 - conf.extractParam)
+                        - (this->operator[](xx))[yy].getQuantile(conf.extractParam))
                         << std::endl; break;
             default: throw std::runtime_error("Extractor not implemented for Image2D");
             }

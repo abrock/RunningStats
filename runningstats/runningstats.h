@@ -266,7 +266,8 @@ public:
         MeanAndStddev,
         MedianAndIQR,
         Count,
-        InterQuantileRange
+        InterQuantileRange,
+        AbsMedianToQuantileRangeRatio
     };
 
     static std::string extractName(Extract const e);
@@ -330,6 +331,8 @@ public:
     HistConfig& extractQuantile(double const param = 0.5);
     HistConfig& extractQuantileRange(double const param = 0.25);
     HistConfig& extractQuartileRange();
+    HistConfig& extractAbsMedianToQuantileRangeRatio(double const param = 0.25);
+    HistConfig& extractAbsMedianToQuartileRangeRatio();
     HistConfig& extractMeanAndStddev();
     HistConfig& extractMedianAndIQR();
 

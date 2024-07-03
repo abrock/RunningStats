@@ -132,6 +132,14 @@ TEST(Plot2D, interquantile) {
              .extractQuartileRange()
              .setColorMap(ColorMaps::viridis_clipped()));
 
+    img.plot("img-interquantile-median-iqr-ratio",
+             HistConfig()
+             .setTitle("abs(Median)/IQR")
+             .setFlipY()
+             .setFixedRatio()
+             .extractAbsMedianToQuartileRangeRatio()
+             .setColorMap(ColorMaps::viridis_clipped()));
+
 }
 
 TEST(Plot2D, Stats2Dfixed) {
