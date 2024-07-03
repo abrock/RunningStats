@@ -444,6 +444,16 @@ HistConfig &HistConfig::extractQuantile(double const param) {
     return *this;
 }
 
+HistConfig &HistConfig::extractQuantileRange(const double param) {
+    extract = Extract::InterQuantileRange;
+    extractParam = param;
+    return *this;
+}
+
+HistConfig &HistConfig::extractQuartileRange() {
+    return extractQuantileRange(0.25);
+}
+
 HistConfig &HistConfig::extractMeanAndStddev() {
     extract = Extract::MeanAndStddev;
     return *this;

@@ -95,6 +95,45 @@ TEST(Plot2D, Stats2Dlimited) {
     stats.plotHist("stats-normal-2d-limited", stats.FreedmanDiaconisBinSize(), HistConfig().setMaxBins(10,10));
 }
 
+TEST(Plot2D, interquantile) {
+    std::mt19937_64 rng(0xBEEBBEEB);
+    std::normal_distribution<double> dist;
+    size_t max_x = 4095;
+    size_t max_y = 3000;
+    double grid = 100;
+
+    size_t n_pts_per_cell = 50;
+
+    Image2D<QuantileStats<float> > img(grid, grid);
+
+    for (size_t xx = grid/2; xx < max_x; xx += grid) {
+        for (size_t yy = grid/2; yy < max_y; yy += grid) {
+            for (size_t ii = 0; ii < n_pts_per_cell; ++ii) {
+                double const val = dist(rng);
+                img[xx][yy].push_unsafe(val);
+            }
+        }
+    }
+
+    img.plot("img-interquantile-median",
+             HistConfig()
+             .setTitle("Median value")
+             .setFlipY()
+             .setFixedRatio()
+             .extractMedian()
+             .setSymmetricCBRange(img, 0.99)
+             .setColorMap(ColorMaps::blue_red_clipped()));
+
+    img.plot("img-interquantile-iqr",
+             HistConfig()
+             .setTitle("IQR")
+             .setFlipY()
+             .setFixedRatio()
+             .extractQuartileRange()
+             .setColorMap(ColorMaps::viridis_clipped()));
+
+}
+
 TEST(Plot2D, Stats2Dfixed) {
     std::normal_distribution<double> dist;
 

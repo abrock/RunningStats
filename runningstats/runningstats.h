@@ -328,6 +328,8 @@ public:
     HistConfig& extractStddev();
     HistConfig& extractVariance();
     HistConfig& extractQuantile(double const param = 0.5);
+    HistConfig& extractQuantileRange(double const param = 0.25);
+    HistConfig& extractQuartileRange();
     HistConfig& extractMeanAndStddev();
     HistConfig& extractMedianAndIQR();
 
