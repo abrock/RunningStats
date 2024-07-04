@@ -140,6 +140,9 @@ public:
      */
     std::string colormap = "";
 
+    bool fit_line = false;
+    HistConfig& setFitLine(bool const val = true);
+
     HistConfig& setColorMap(std::string const& name);
 
     /**
@@ -982,6 +985,7 @@ public:
     std::tuple<double, double, double, double> getQuantileEllipse(double const ignore) const;
     void getQuantileEllipse(Ellipses& ellipse, double const ignore) const;
 
+    void plotDots(const std::string prefix, const HistConfig &conf) const;
 private:
 
     mutable std::vector<std::pair<T, T>> values;

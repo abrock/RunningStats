@@ -138,6 +138,29 @@ std::vector<std::pair<T, T> > Stats2D<T>::getData() const {
 }
 
 template<class T>
+void Stats2D<T>::plotDots(const std::string prefix, const HistConfig &conf) const {
+    std::stringstream cmd;
+    disable_thousands_separator(cmd);
+    gnuplotio::Gnuplot plt;
+    std::string const data_fn = plt.file1d(values, prefix + ".data");
+    cmd << "#!/usr/bin/gnuplot \n";
+    cmd << "set term png;\n";
+    cmd << "set output '" << prefix << ".png';\n";
+    cmd << conf.toString() << ";\n";
+    if (conf.fit_line) {
+        cmd << "f(x) = a*x+b;\n";
+        cmd << "fit f(x) " << data_fn << " via a,b;\n";
+        cmd << "plot " << data_fn << " title 'data', f(x) w l title 'fit';\n";
+    }
+    else {
+        cmd << "plot " << data_fn << " notitle;\n";
+    }
+    plt << cmd.str();
+    std::ofstream cmd_out(prefix + ".gpl");
+    cmd_out << cmd.str();
+}
+
+template<class T>
 void Stats2D<T>::plotHist(const std::string prefix, std::pair<double, double> bin_size, const HistConfig &conf) const {
     if (bin_size.first <= 0 || bin_size.second <= 0) {
         bin_size = FreedmanDiaconisBinSize();

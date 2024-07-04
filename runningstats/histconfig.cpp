@@ -269,6 +269,11 @@ void HistConfig::getLinesRect(double &_min_x, double &_min_y, double &_max_x, do
     }
 }
 
+HistConfig &HistConfig::setFitLine(const bool val) {
+    fit_line = val;
+    return *this;
+}
+
 HistConfig &HistConfig::setColorMap(const std::string &name) {
     ColorMaps().getColorMap(name);
     colormap = name;
