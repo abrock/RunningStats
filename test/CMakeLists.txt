@@ -6,9 +6,9 @@
 # include_directories(${FOO_INCLUDE_DIRS})
 
 
-find_package(GTest)
-if (GTest_FOUND)
+find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
+find_package(OpenMP REQUIRED)
 
 foreach(executable test-2d test-knuth)
 add_executable(${executable} ${executable}.cpp)
@@ -30,10 +30,9 @@ foreach(executable test-runningstats test-2d test-knuth)
 target_link_libraries(${executable} ${LIBRARY_NAME})
 target_link_libraries(${executable}
 	GTest::gtest
+        OpenMP::OpenMP_CXX
 	)
 endforeach()
-
-endif(GTest_FOUND)
 
 #install(TARGETS test-runningstats
 # In order to export target, uncomment next line

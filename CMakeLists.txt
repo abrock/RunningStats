@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(RunningStats)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong -fopenmp -Wall -Werror=shadow -pedantic")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong -Wall -Werror=shadow -pedantic")
 
 OPTION(PRODUCTION "Enable this for production builds with less strict compile error checking" ON)
 if (PRODUCTION)
