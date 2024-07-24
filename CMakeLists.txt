@@ -16,6 +16,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(fmt REQUIRED)
 find_package(Boost COMPONENTS system filesystem iostreams REQUIRED)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(TCLAP REQUIRED)
+
 # Set variables
 include(${CMAKE_SOURCE_DIR}/cmake/SetEnv.cmake)
 
