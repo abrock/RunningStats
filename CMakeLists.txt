@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(fmt REQUIRED)
+find_package(Boost COMPONENTS system filesystem iostreams REQUIRED)
 
 # Set variables
 include(${CMAKE_SOURCE_DIR}/cmake/SetEnv.cmake)
