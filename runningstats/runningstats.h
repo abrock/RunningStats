@@ -1117,6 +1117,27 @@ public:
 
 };
 
+/**
+ * @brief The RunningMax computes the maximum of all values that are fed into its push-functions,
+ * except for NaN.
+ */
+class RunningMax
+{
+private:
+  double value = 0.0;
+
+public:
+
+  double getValue() const;
+
+  void push_unsafe(double const val);
+
+  void push_unsafe(RunningStats const &stats);
+
+  template<class T>
+  void push_unsafe(QuantileStats<T> const &stats);
+};
+
 } // namespace runningstats
 
 #endif // RUNNINGSTATS_H
