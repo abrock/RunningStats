@@ -103,7 +103,6 @@ THE SOFTWARE.
 
 // Patch for Windows by Damien Loison
 #ifdef _WIN32
-#    include <windows.h>
 #    define GNUPLOT_PCLOSE _pclose
 #    define GNUPLOT_POPEN  _popen
 #    define GNUPLOT_FILENO _fileno
@@ -111,14 +110,6 @@ THE SOFTWARE.
 #    define GNUPLOT_PCLOSE pclose
 #    define GNUPLOT_POPEN  popen
 #    define GNUPLOT_FILENO fileno
-#endif
-
-#ifdef _WIN32
-#    define GNUPLOT_ISNAN _isnan
-#else
-// cppreference.com says std::isnan is only for C++11.  However, this seems to work on Linux
-// and I am assuming that if isnan exists in math.h then std::isnan exists in cmath.
-#    define GNUPLOT_ISNAN std::isnan
 #endif
 
 // MSVC gives a warning saying that fopen and getenv are not secure.  But they are secure.
@@ -141,9 +132,9 @@ THE SOFTWARE.
 // "pgnuplot" is considered deprecated according to the Internet.  It may be faster.  It
 // doesn't seem to handle binary data though.
 //#    define GNUPLOT_DEFAULT_COMMAND "pgnuplot -persist"
-// On Windows, gnuplot echos commands to stderr.  So we forward its stderr to the bit bucket.
-// Unfortunately, this means you will miss out on legitimate error messages.
-#    define GNUPLOT_DEFAULT_COMMAND "gnuplot -persist 2> NUL"
+// The default install path for gnuplot is written here.  This way the user doesn't have to add
+// anything to their %PATH% environment variable.
+#    define GNUPLOT_DEFAULT_COMMAND "\"C:\\Program Files\\gnuplot\\bin\\gnuplot.exe\" -persist"
 #else
 #    define GNUPLOT_DEFAULT_COMMAND "gnuplot -persist"
 #endif
@@ -510,7 +501,7 @@ template<> struct TextSender< unsigned char> : public CastIntTextSender< unsigne
 template <typename T>
 struct FloatTextSender {
     static void send(std::ostream &stream, const T &v) {
-        if(GNUPLOT_ISNAN(v)) { stream << "nan"; } else { stream << v; }
+        if(std::isnan(v)) { stream << "nan"; } else { stream << v; }
     }
 };
 template<> struct TextSender<      float> : FloatTextSender<      float> { };
@@ -751,7 +742,7 @@ struct Error_WasNotContainer {
 
 // The unspecialized version of this class gives traits for things that are *not* arrays.
 template <typename T, typename Enable=void>
-class ArrayTraits {
+class ArrayTraitsImpl {
 public:
     // The value type of elements after all levels of nested containers have been dereferenced.
     typedef Error_WasNotContainer value_type;
@@ -774,6 +765,9 @@ public:
     }
 };
 
+template <typename T>
+using ArrayTraits = ArrayTraitsImpl<typename std::remove_reference<typename std::remove_cv<T>::type>::type>;
+
 // Most specializations of ArrayTraits should inherit from this (with V set to the value type).
 // It sets some default values.
 template <typename V>
@@ -785,16 +779,6 @@ public:
     static constexpr bool allow_auto_unwrap = true;
     static constexpr size_t depth = ArrayTraits<V>::depth + 1;
 };
-
-// This handles reference types, such as are given with std::tie.
-// It also allows for instance "ArrayTraits<T[N]>" to match "ArrayTraits<T (&) [N]>".
-// I think this is okay to do... The alternative is to use remove_reference all over the place.
-template <typename T>
-class ArrayTraits<T&> : public ArrayTraits<T> { };
-
-// This supports gp.send1d(std::forward_as_tuple(x, std::move(y)));
-template <typename T>
-class ArrayTraits<T&&> : public ArrayTraits<T> { };
 
 // }}}2
 
@@ -842,7 +826,7 @@ private:
 };
 
 template <typename T>
-class ArrayTraits<T,
+class ArrayTraitsImpl<T,
     typename std::enable_if_t<is_like_stl_container<T>>
 > : public ArrayTraitsDefaults<typename T::value_type> {
 public:
@@ -854,7 +838,7 @@ public:
 };
 
 template <typename T>
-class ArrayTraits<T,
+class ArrayTraitsImpl<T,
     typename std::enable_if_t<is_like_stl_container2<T>>
 > : public ArrayTraitsDefaults<typename std::iterator_traits<decltype(begin(std::declval<T const>()))>::value_type> {
     using IterType = decltype(begin(std::declval<T const>()));
@@ -872,7 +856,7 @@ public:
 // {{{2 C style array support
 
 template <typename T, size_t N>
-class ArrayTraits<T[N]> : public ArrayTraitsDefaults<T> {
+class ArrayTraitsImpl<T[N]> : public ArrayTraitsDefaults<T> {
 public:
     typedef IteratorRange<const T*, T> range_type;
 
@@ -927,7 +911,7 @@ private:
 };
 
 template <typename T, typename U>
-class ArrayTraits<std::pair<T, U>> {
+class ArrayTraitsImpl<std::pair<T, U>> {
 public:
     typedef PairOfRange<typename ArrayTraits<T>::range_type, typename ArrayTraits<U>::range_type> range_type;
     typedef std::pair<typename ArrayTraits<T>::value_type, typename ArrayTraits<U>::value_type> value_type;
@@ -953,7 +937,7 @@ public:
 // {{{2 boost::tuple support
 
 template <typename T>
-class ArrayTraits<T,
+class ArrayTraitsImpl<T,
     typename std::enable_if_t<
         is_boost_tuple<T> && !is_boost_tuple_nulltype<typename T::tail_type>
     >
@@ -978,7 +962,7 @@ public:
 };
 
 template <typename T>
-class ArrayTraits<T,
+class ArrayTraitsImpl<T,
     typename std::enable_if_t<
         is_boost_tuple<T> && is_boost_tuple_nulltype<typename T::tail_type>
     >
@@ -1024,7 +1008,7 @@ struct StdTupUnwinder<Tuple, 0> {
 };
 
 template <typename... Args>
-class ArrayTraits<std::tuple<Args...>> :
+class ArrayTraitsImpl<std::tuple<Args...>> :
     public ArrayTraits<typename StdTupUnwinder<std::tuple<Args...>, sizeof...(Args)-1>::type>
 {
     typedef std::tuple<Args...> Tuple;
@@ -1642,7 +1626,10 @@ struct FileHandleWrapper {
     void fh_close() {
         if(should_use_pclose) {
             if(GNUPLOT_PCLOSE(wrapped_fh)) {
-                std::cerr << "pclose returned error: " << strerror(errno) << std::endl;
+                perror("pclose");
+                //char msg[1000];
+                //strerror_s(msg, sizeof(msg), errno);
+                //std::cerr << "pclose returned error: " << msg << std::endl;
             }
         } else {
             if(fclose(wrapped_fh)) {
@@ -2165,7 +2152,7 @@ private:
 };
 
 template <typename T, int ArrayDim>
-class ArrayTraits<blitz::Array<T, ArrayDim>> : public ArrayTraitsDefaults<T> {
+class ArrayTraitsImpl<blitz::Array<T, ArrayDim>> : public ArrayTraitsDefaults<T> {
 public:
     static constexpr bool allow_auto_unwrap = false;
     static constexpr size_t depth = ArrayTraits<T>::depth + ArrayDim;
@@ -2208,7 +2195,7 @@ template <typename T> static constexpr bool dont_treat_as_stl_container<arma::fi
 // {{{3 Cube
 
 template <typename T>
-class ArrayTraits<arma::Cube<T>> : public ArrayTraitsDefaults<T> {
+class ArrayTraitsImpl<arma::Cube<T>> : public ArrayTraitsDefaults<T> {
     class SliceRange {
     public:
         SliceRange() : p(nullptr), col(0), slice(0) { }
@@ -2378,17 +2365,17 @@ public:
 };
 
 template <typename T>
-class ArrayTraits<arma::field<T>> : public ArrayTraits_ArmaMatOrField<arma::field<T>, T> { };
+class ArrayTraitsImpl<arma::field<T>> : public ArrayTraits_ArmaMatOrField<arma::field<T>, T> { };
 
 template <typename T>
-class ArrayTraits<arma::Mat<T>> : public ArrayTraits_ArmaMatOrField<arma::Mat<T>, T> { };
+class ArrayTraitsImpl<arma::Mat<T>> : public ArrayTraits_ArmaMatOrField<arma::Mat<T>, T> { };
 
 // }}}3
 
 // {{{3 Row
 
 template <typename T>
-class ArrayTraits<arma::Row<T>> : public ArrayTraitsDefaults<T> {
+class ArrayTraitsImpl<arma::Row<T>> : public ArrayTraitsDefaults<T> {
 public:
     static constexpr bool allow_auto_unwrap = false;
 
@@ -2405,7 +2392,7 @@ public:
 // {{{3 Col
 
 template <typename T>
-class ArrayTraits<arma::Col<T>> : public ArrayTraitsDefaults<T> {
+class ArrayTraitsImpl<arma::Col<T>> : public ArrayTraitsDefaults<T> {
 public:
     static constexpr bool allow_auto_unwrap = false;
 
@@ -2568,7 +2555,7 @@ public:
 };
 
 template <typename T>
-class ArrayTraits<T, typename std::enable_if_t<is_eigen_matrix<T>>> :
+class ArrayTraitsImpl<T, typename std::enable_if_t<is_eigen_matrix<T>>> :
     public std::conditional_t<
         T::RowsAtCompileTime == 1 || T::ColsAtCompileTime == 1,
         ArrayTraits_Eigen1D<T>,
