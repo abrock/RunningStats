@@ -132,7 +132,7 @@ void Ellipses::plot(std::string const& prefix, const HistConfig &conf) {
     double const size_y = limits_y.getMax() - limits_y.getMin();
     double const margin = 0.04;
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n"
+    cmd << conf.term << ";\n"
         << "set output '" << prefix + ".png'; \n"
         << conf.toString() << ";\n"
         << "set xrange [" << limits_x.getMin() - margin * size_x << ":" << limits_x.getMax() + margin * size_x << "];\n"
@@ -303,7 +303,7 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     }
 
     cmd1 << plt1.file(percentage_over_threshold, percentage_file1) << " u 1:2 axes x1y2 w l title 'percentage';\n";
-    cmd1 << "set term pngcairo;\n";
+    cmd1 << conf.term << ";\n";
     cmd1 << "set output '" << prefix << "-error.png';\n";
     cmd1 << "replot;\n";
     plt1 << cmd1.str();
@@ -311,7 +311,7 @@ void ThresholdErrorMean<T>::plot(const std::string &prefix, const HistConfig &co
     cmd_out1 << cmd1.str();
 
     cmd2 << plt2.file(threshold_over_percentage, percentage_file2) << " u 1:2 axes x1y2 w l title 'threshold';\n";
-    cmd2 << "set term pngcairo;\n";
+    cmd2 << conf.term << ";\n";
     cmd2 << "set output '" << prefix << "-percentage.png';\n";
     cmd2 << "replot;\n";
     plt2 << cmd2.str();

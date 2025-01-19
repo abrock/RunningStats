@@ -143,7 +143,7 @@ void Image1D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::stringstream cmd;
     disable_thousands_separator(cmd);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n";
+    cmd << conf.term << ";\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << "\n";
     cmd << "set xrange[" << min_val - width/2 << ":" << max_val + width/2 << "]; \n";
@@ -214,7 +214,7 @@ void Image2D<T>::plot(const std::string &prefix, const HistConfig &conf) {
     std::stringstream cmd;
     disable_thousands_separator(cmd);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n";
+    cmd << conf.term << ";\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << "\n";
     cmd << conf.colorMapCmd();

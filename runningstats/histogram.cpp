@@ -107,7 +107,7 @@ void Histogram::plotHist(const std::string prefix, const HistConfig conf) const 
     Misc::make_target_dir(data_file);
 
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n";
+    cmd << conf.term << ";\n";
     cmd << "set output '" << prefix + ".png'; \n";
     cmd << conf.toString();
     cmd << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
@@ -258,7 +258,7 @@ void Histogram2D::plotHist(const std::string prefix, const bool absolute) const 
     std::stringstream cmd;
     disable_thousands_separator(cmd);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n";
+    cmd << HistConfig().term << ";\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << "plot '" << data_file << "' u 2:1:3 with image notitle;\n";
     gnuplotio::Gnuplot plt;

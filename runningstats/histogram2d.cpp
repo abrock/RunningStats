@@ -113,7 +113,7 @@ void Histogram2Dfixed::plotHist(const std::string prefix, HistConfig const& conf
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n";
+    cmd << conf.term << ";\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString();
     cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
@@ -198,7 +198,7 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     bool const range_1_empty = (min_1 == max_1);
     bool const range_2_empty = (min_2 == max_2);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term pngcairo;\n";
+    cmd << conf.term << ";\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString();
     cmd << "set xrange[" << min_1 - (range_1_empty ? 1:width_1/2) << " : " << max_1 + (range_1_empty ? 1:width_1/2) << "];\n";
@@ -227,7 +227,7 @@ void Histogram2Dfixed::plotHistPm3D(const std::string prefix, const HistConfig &
     cmd << conf.plotLines(data_file);
     cmd << ";\n";
     cmd << conf.generateFormatCommands(prefix);
-    //cmd << "set term pngcairo;\n";
+    //cmd << conf.term << ";\n";
     //cmd << "set output '" << prefix << ".png';\n";
     //cmd << "replot;\n";
     //cmd << "set term tikz;\n";

@@ -123,6 +123,8 @@ public:
 
     HistConfig& setBG(std::string const& color);
 
+    std::string term = "set term pngcairo enhanced color notransparent crop background rgb \"white\" fontscale 1.5 linewidth 3 rounded pointscale 2 size 1280,960";
+
     /**
      * @brief getLinesRect computes the smallest rectangle covering all Line objects added to the config.
      */
