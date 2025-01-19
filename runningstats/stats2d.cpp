@@ -144,7 +144,7 @@ void Stats2D<T>::plotDots(const std::string prefix, const HistConfig &conf) cons
     gnuplotio::Gnuplot plt;
     std::string const data_fn = plt.file1d(values, prefix + ".data");
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term png;\n";
+    cmd << "set term pngcairo;\n";
     cmd << "set output '" << prefix << ".png';\n";
     cmd << conf.toString() << ";\n";
     if (conf.fit_line) {

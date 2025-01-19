@@ -307,7 +307,7 @@ void QuantileStats<T>::plotCDF(const std::string prefix, HistConfig conf) const 
     std::string data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term png;\n"
+    cmd << "set term pngcairo;\n"
         << "set output '" << prefix + ".png'; \n"
         << conf.toString()
         << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
@@ -398,7 +398,7 @@ void QuantileStats<T>::plotReducedCDF(const std::string prefix, HistConfig conf)
     std::string data_file = prefix + ".data";
     Misc::make_target_dir(data_file);
     cmd << "#!/usr/bin/gnuplot \n";
-    cmd << "set term png;\n"
+    cmd << "set term pngcairo;\n"
         << "set output '" << prefix + ".png'; \n"
         << conf.toString()
         << "set title '" << escape(conf.title) << " n=" << escape(tostring(getCount())) << ", m=" << getMean() << ", s=" << getStddev() << "';\n";
