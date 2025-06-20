@@ -27,6 +27,9 @@ void QuantileStats<T>::push(const double value){
 
 template<class T>
 void QuantileStats<T>::push_unsafe(const double value) {
+    if (!std::isfinite(value)) {
+        return;
+    }
     sorted = false;
     values.push_back(value);
     RunningStats::push_unsafe(value);
