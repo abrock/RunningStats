@@ -514,7 +514,7 @@ double QuantileStats<T>::getTrimmedMean(const T & ignore) const {
     }
     const size_t lower = size_t(ignore/2 * (values.size()-1));
     const size_t upper = size_t((1.0-ignore/2) * (values.size()-1));
-    if (0 == upper - lower) {
+    if (upper == lower) {
         return double(getQuantile(0.5));
     }
     sort();
