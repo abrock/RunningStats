@@ -369,14 +369,27 @@ std::vector<std::pair<T, T> > ThresholdErrorMean<T>::getData() const {
 template class ThresholdErrorMean<float>;
 
 std::string escape(const std::string &str) {
-    std::string res;
-    for (const char c : str) {
-        if ('\'' == c) {
-            res += '\'';
-        }
-        res += c;
-    }
-    return res;
+  std::string res;
+  res.reserve(str.size() * 2); // Reserve space for worst-case overhead
+
+  for (char c : str) {
+      switch (c) {
+          case '_':  // Prevents GNUplot from converting the next char to a subscript
+          case '^':  // Prevents GNUplot from converting the next char to a superscript
+          case '\\': // Escapes backslashes in double-quoted GNUplot strings
+          case '"':  // Escapes double quotes inside GNUplot string literals
+          case '@':  // Prevents enhanced text positioning syntax
+          case '&':  // Prevents enhanced text spacing syntax
+          case '~':  // Prevents enhanced text overprinting syntax
+            res += '\\';
+            [[fallthrough]]; // Suppresses compiler warnings in C++17 and later
+          default:
+            break;
+      }
+      res += c;
+  }
+
+  return res;
 }
 
 std::string tostring(int64_t n) {

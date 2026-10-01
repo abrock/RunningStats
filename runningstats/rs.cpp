@@ -168,7 +168,7 @@ double RunningStats::getLogStddev() const {
     return std::sqrt(getLogVar());
 }
 void RunningStats::print(std::ostream& out) const {
-    out.precision(15);
+    out.precision(5);
     out << std::scientific << getMean() << " +- " << getStddev() << ", " << n << " Samples, range: [" << min << ", " << max << "]";
 }
 

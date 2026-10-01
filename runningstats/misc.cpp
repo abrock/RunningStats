@@ -1,6 +1,8 @@
 #include "misc.h"
 
 #include <cmath>
+#include <string>
+#include <algorithm>
 
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -22,5 +24,12 @@ std::string Misc::range2string(const double min, const double max) {
 
 std::string Misc::replace_empty(const std::string &val, const std::string &replacement) {
     return val.empty() ? replacement : val;
+}
+
+void Misc::trim(std::string &s)
+{
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+          s.end());
 }
 
