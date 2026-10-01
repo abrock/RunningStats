@@ -10,7 +10,7 @@
 
 #include "gnuplot-iostream.h"
 
-#include <fmt/core.h>
+#include <format>
 
 namespace runningstats {
 
@@ -48,7 +48,7 @@ size_t BinaryStats::getFalseCount() const {
 
 std::string BinaryStats::print() const {
     std::stringstream out;
-    return fmt::format(
+    return std::format(
                 "True: {:10L} ({:.4f}%), False: {:10L} ({:.4f}%), Total: {:10L}",
                 count_true, getPercent(),
                 getFalseCount(), getFalsePercent(),

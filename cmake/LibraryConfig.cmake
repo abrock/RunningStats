@@ -28,11 +28,6 @@ target_link_libraries(${LIBRARY_NAME}
     ${Boost_IOSTREAMS_LIBRARY}
 )
 
-target_link_libraries(${LIBRARY_NAME}
-    PRIVATE
-    fmt::fmt
-)
-
 # Install library
 install(TARGETS ${LIBRARY_NAME}
   EXPORT ${PROJECT_EXPORT}
