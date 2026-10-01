@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Boost COMPONENTS system filesystem iostreams REQUIRED)
+find_package(Boost COMPONENTS filesystem iostreams REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(TCLAP REQUIRED)
@@ -33,7 +33,12 @@ endif()
 # Install targets
 include(${CMAKE_SOURCE_DIR}/cmake/InstallConfig.cmake)
 
-foreach(PROGRAM runningstats-autohist runningstats-print runningstats-thresholds runningstats-get-median)
+foreach(PROGRAM
+        runningstats-correlation
+        runningstats-autohist
+        runningstats-print
+        runningstats-thresholds
+        runningstats-get-median)
 add_executable(${PROGRAM} ${PROGRAM}.cpp)
 
 target_link_libraries(${PROGRAM}

@@ -20,11 +20,10 @@ endif()
 # Target
 add_library(${LIBRARY_NAME} ${LIBRARY_TYPE} ${SOURCES} ${HEADERS})
 
-find_package(Boost COMPONENTS system filesystem iostreams REQUIRED)
+find_package(Boost COMPONENTS filesystem iostreams REQUIRED)
 target_link_libraries(${LIBRARY_NAME}
     PUBLIC
     ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
 )
 
